@@ -7,12 +7,12 @@ using Microsoft.AspNetCore.Mvc;
 using MySugar;
 using MySqlSugar;
 using MyCommon;
-using static ZC.Platform.API.Model.UsersModel;
 using log4net;
 using Microsoft.AspNetCore.Hosting;
 using Newtonsoft.Json;
 using System.IO;
 using ZC.Platform.Model;
+using static ZC.Platform.API.Model.UsersModel;
 
 namespace ZC.Platform.API.Controllers
 {

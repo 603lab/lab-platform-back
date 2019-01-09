@@ -44,6 +44,7 @@ namespace MyCommon
             Count = totalCount;
             Data = TData;
         }
+
         /// <summary>
         /// 如果为空时候需要返回错误的
         /// </summary>
