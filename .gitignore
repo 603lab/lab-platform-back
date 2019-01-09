@@ -1,1 +1,12 @@
 /603-Platform.API/.vs
+/603-Platform.API/MyCommon/*
+/603-Platform.API/MyCommon/obj
+/603-Platform.API/MyCommon/bin
+/603-Platform.API/MySugar/obj
+/603-Platform.API/MySugar/bin
+/603-Platform.API/RunT4/obj
+/603-Platform.API/RunT4/bin
+/603-Platform.API/ZC.Platform.API/obj
+/603-Platform.API/ZC.Platform.API/bin
+/603-Platform.API/ZC.Platform.Model/obj
+/603-Platform.API/ZC.Platform.Model/bin
