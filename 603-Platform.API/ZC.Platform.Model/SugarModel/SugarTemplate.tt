@@ -1,0 +1,31 @@
+﻿<#@ template debug="false" hostspecific="true" language="C#" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ assembly name="System.Core" #>
+<#@ assembly name="System.Xml" #>
+<#@ assembly name="System.Xml.Linq" #>
+<#@ assembly name="System.Data" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Web" #>
+<#@ import namespace="MySqlSugar" #>
+<#@ assembly name="$(SolutionDir)\Demo.Model\App_Lib\MySqlSugar.dll" #>
+
+
+<# 
+     
+    //当前项目目录
+    string projectDir = Host.ResolveAssemblyReference("$(ProjectDir)");
+
+    //解决方案目录
+    string solutionDir = Host.ResolveAssemblyReference("$(SolutionDir)");
+	//配置文件路径
+
+     using (var db = new SqlSugarClient("Server=localhost;database=my_new_t4;uid=Isaac;password=123456;charset='utf8';SslMode=None"))
+     {
+         db.ClassGenerating.CreateClassFiles(db, projectDir+"/ZC.Platform.API/Demo.Model","Models");  
+      };
+#>
+
+T4代码
