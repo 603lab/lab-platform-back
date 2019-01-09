@@ -1,6 +1,0 @@
-C:\Users\luren\source\repos\CoreORMFramwork\MySugar\bin\Debug\netcoreapp2.1\MySugar.deps.json
-C:\Users\luren\source\repos\CoreORMFramwork\MySugar\bin\Debug\netcoreapp2.1\MySugar.dll
-C:\Users\luren\source\repos\CoreORMFramwork\MySugar\obj\Debug\netcoreapp2.1\MySugar.csprojAssemblyReference.cache
-C:\Users\luren\source\repos\CoreORMFramwork\MySugar\obj\Debug\netcoreapp2.1\MySugar.csproj.CoreCompileInputs.cache
-C:\Users\luren\source\repos\CoreORMFramwork\MySugar\obj\Debug\netcoreapp2.1\MySugar.AssemblyInfoInputs.cache
-C:\Users\luren\source\repos\CoreORMFramwork\MySugar\obj\Debug\netcoreapp2.1\MySugar.AssemblyInfo.cs
