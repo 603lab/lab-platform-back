@@ -5,6 +5,13 @@ using System.Text;
 namespace MyCommon
 {
     /// <summary>
+    /// 返回类基类
+    /// </summary>
+    public class ResponseModelBase
+    {
+
+    }
+    /// <summary>
     /// 返回基类
     /// </summary>
     public class ResponseModelBase<T> where T : class
@@ -84,5 +91,6 @@ namespace MyCommon
 
         }
     }
+
 
 }

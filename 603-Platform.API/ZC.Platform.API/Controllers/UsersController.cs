@@ -38,7 +38,10 @@ namespace ZC.Platform.API.Controllers
                     var my = db.Queryable<T_USERS>()
                         .Where(s => s.ID == user.ID)
                         .FirstOrDefault();
-                    retValue.SuccessDefalut(my, 1, "不存在该用户");
+                    //转化成前端友好的数据
+                    UsersBase users = new UsersBase();
+                    users = ModelConvert.FromTo<T_USERS, UsersBase>(my, users);
+                    retValue.SuccessDefalut(users, 1, "不存在该用户");
 
                     //记录日志
                     Startup.log.Info(LogHelper.LogDetails(logContent, user, retValue));
@@ -69,7 +72,12 @@ namespace ZC.Platform.API.Controllers
                     var my = db.Queryable<T_USERS>()
                         .Where(s => s.ID == user.ID)
                         .FirstOrDefault();
-                    retValue.SuccessDefalut(my, 1, "不存在该用户");
+
+                    UsersBase users = new UsersBase();
+                    //转化成前端友好的数据
+                    users = ModelConvert.FromTo<T_USERS, UsersBase>(my, users);
+                    retValue.SuccessDefalut(users, 1, "不存在该用户");
+
                 }
             }
             catch (Exception ex)
@@ -96,7 +104,11 @@ namespace ZC.Platform.API.Controllers
                     var my = db.Queryable<T_USERS>()
                         .Where(s => s.ID == user.ID)
                         .FirstOrDefault();
-                    retValue.SuccessDefalut(my, 1, "不存在该用户");
+                    //转化成前端友好的数据
+                    UsersBase users = new UsersBase();
+                    users = ModelConvert.FromTo<T_USERS, UsersBase>(my, users);
+                    retValue.SuccessDefalut(users, 1, "不存在该用户");
+
                 }
             }
             catch (Exception ex)
@@ -118,11 +130,21 @@ namespace ZC.Platform.API.Controllers
             ResGetUserList retValue = new ResGetUserList();
             try
             {
+                //获取转化表格
                 using (var db = DbContext.GetInstance())
                 {
-                    var userList = db.Queryable<T_USERS>()
-                        .Where(s => s.is_male == user.is_male)
+                    var userList = db.Queryable<UsersBase>()
+                        .Where(s => s.isMale == user.isMale)
                         .ToList();
+                    
+                    //转化成前端友好的数据
+                    //var list = userList.Select(s =>
+                    //{
+                    //    var model = new UsersBase();
+                    //    model = ModelConvert.FromTo<T_USERS, UsersBase>(s, model);
+                    //    return model;
+                    //}).ToList();
+                    
                     retValue.SuccessDefalut(userList, userList.Count);
                 }
             }

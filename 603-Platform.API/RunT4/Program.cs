@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using MySqlSugar;
@@ -43,23 +44,22 @@ namespace RunT4
                         // string model = $"{modelPath}\\{tableName}.cs";
                         db.AddMappingTable(new KeyValue() { Key = tableName.ToUpper(), Value = tableName });
 
+                        #region 废弃
+                        //var kvList = new List<KeyValue>();
+                        //var columsList = db.ClassGenerating.GetTableColumns(db, tableName);
+                        //foreach (var item in columsList)
+                        //{
+                        //   // kvList.Add(GetNewKV(item.COLUMN_NAME.ToString(), item.COLUMN_NAME.ToString()));
+                        //    db.AddMappingColumn(GetNewKV(item.COLUMN_NAME.ToString(), item.COLUMN_NAME.ToString()));
+                        //}
+                        
+                        #endregion
+
                     });
                     //删除所有.cs文件 非通用方法
                     DeleteAllCS(modelPath);
-
                     //建立全部
                     db.ClassGenerating.CreateClassFiles(db, modelPath, "ZC.Platform.Model");
-
-                    //  db.ClassGenerating.CreateClassFiles(db, modelPath, "ZC.Platform.Model",
-                    //null,
-                    //className =>
-                    //{
-                    //    //生成文件之后的回调
-                    //}, tableName =>
-                    //{
-                    //    //生成文件之前的回调
-                    //});
-
 
                 }
                 Console.WriteLine("生成成功！");
@@ -74,6 +74,41 @@ namespace RunT4
             Exit(1);
         }
 
+        public static KeyValue GetNewKV(string Key, string Value)
+        {
+            Key = NewKey(Key);
+            KeyValue kv = new KeyValue();
+            kv.Key = Key;
+            kv.Value = Value;
+            return kv;
+        }
+
+        /// <summary>
+        /// 获取驼峰式的命名
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public static string NewKey(string key)
+        {
+            int index = key.IndexOf('_');
+            if (index != -1)
+            {
+                string ch = key[index + 1].ToString().ToUpper();
+
+                key = key.Remove(index, 2);
+                key = key.Insert(index, ch);
+                while (key.IndexOf('_') != -1)
+                {
+                    key = NewKey(key);
+                }
+            }
+
+            return key;
+        }
+
+
+
+        //获取文件json
         public static string GetFileJson(string filepath)
         {
             string json = string.Empty;
@@ -87,6 +122,10 @@ namespace RunT4
             return json;
         }
 
+        /// <summary>
+        /// 定时退出
+        /// </summary>
+        /// <param name="seconds"></param>
         public static void Exit(int seconds)
         {
             seconds--;
@@ -98,6 +137,10 @@ namespace RunT4
             };
         }
 
+        /// <summary>
+        /// 删除所有的.cs文件
+        /// </summary>
+        /// <param name="filePath"></param>
         public static void DeleteAllCS(string filePath)
         {
             DirectoryInfo folder = new DirectoryInfo(filePath);
