@@ -16,9 +16,37 @@ using static ZC.Platform.API.Model.UsersModel;
 
 namespace ZC.Platform.API.Controllers
 {
-    [Route("MySugarCore/Users")]
+    [Route("Base-Module/Users")]
     public class UsersController : Controller
     {
+        /// <summary>
+        /// 管理员注册
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        [HttpPost("InsertOrUpdate")]
+        public ResUsersBase InsertOrUpdate([FromBody]ReqUsersBase user)
+        {
+            ResUsersBase retValue = new ResUsersBase();
+            using (var db = DbContext.GetInstance("T_USERS"))
+            {
+                try
+                {
+                    //设置创建时间
+                    user.createTime = DateTime.Now;
+
+                    db.InsertOrUpdate(user);
+                    retValue.SuccessDefalut(1);
+                }
+                catch (Exception ex)
+                {
+                    retValue.FailDefalut(ex);
+                }
+                
+            }
+            return retValue;
+        }
+
 
         /// <summary>
         /// Get单个查询 - url

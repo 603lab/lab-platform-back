@@ -12,7 +12,7 @@ namespace ZC.Platform.API.Model
     {
         [SugarMapping(TableName = "T_USERS")]
         /// <summary>
-        /// 自动生成的Base类
+        /// 自动生成的Base类/用于请求
         /// </summary>
         public class UsersBase
         {
@@ -68,6 +68,15 @@ namespace ZC.Platform.API.Model
             public string createUserCode { get; set; }
             [DataField("create_time")]
             public DateTime createTime { get; set; }
+
+        }
+
+        public class ReqUsersBase : UsersBase
+        {
+
+        }
+        public class ResUsersBase:ResponseModelBase
+        {
 
         }
 

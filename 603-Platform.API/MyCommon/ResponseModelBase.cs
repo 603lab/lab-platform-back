@@ -9,8 +9,62 @@ namespace MyCommon
     /// </summary>
     public class ResponseModelBase
     {
+        public bool isSuccess { get; set; } = true;
 
+        /// <summary>
+        /// 返回数据数量
+        /// </summary>
+        public int Count { get; set; }
+
+        /// <summary>
+        /// 信息
+        /// </summary>
+        public string Message { get; set; } = "调用成功！";
+
+        /// <summary>
+        /// 状态码
+        /// </summary>
+        public int statusCode { get; set; } = 200;
+
+        public void SuccessDefalut(int totalCount)
+        {
+            statusCode = 200;
+            isSuccess = true;
+            Message = "调用成功!";
+            Count = totalCount;
+        }
+        public void SuccessDefalut(string message,int totalCount)
+        {
+            statusCode = 200;
+            isSuccess = true;
+            Message = message;
+            Count = totalCount;
+        }
+        public void FailDefalut(Exception ex)
+        {
+            statusCode = -100;
+            isSuccess = false;
+            Message = $"返回失败失败,错误信息:{ex.Message}";
+            Count = 0;
+        }
+        public void FailDefalut()
+        {
+            statusCode = -100;
+            isSuccess = false;
+            Message = $"不存在改信息";
+            Count = 0;
+        }
+        public void FailDefalut(string message)
+        {
+            statusCode = -100;
+            isSuccess = false;
+            Message = message;
+            Count = 0;
+        }
     }
+
+   
+
     /// <summary>
     /// 返回基类
     /// </summary>
