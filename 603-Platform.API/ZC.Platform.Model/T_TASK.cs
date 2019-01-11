@@ -57,6 +57,13 @@ namespace ZC.Platform.Model
         public int is_done {get;set;}
 
         /// <summary>
+        /// Desc:最后修改时间 
+        /// Default:- 
+        /// Nullable:False 
+        /// </summary>
+        public DateTime last_edit_time {get;set;}
+
+        /// <summary>
         /// Desc:创建者编号 
         /// Default:- 
         /// Nullable:False 
@@ -76,6 +83,20 @@ namespace ZC.Platform.Model
         /// Nullable:False 
         /// </summary>
         public DateTime create_time {get;set;}
+
+        /// <summary>
+        /// Desc:- 
+        /// Default:- 
+        /// Nullable:True 
+        /// </summary>
+        public string last_edit_user_code {get;set;}
+
+        /// <summary>
+        /// Desc:- 
+        /// Default:- 
+        /// Nullable:True 
+        /// </summary>
+        public string last_edit_user_name {get;set;}
 
     }
 }

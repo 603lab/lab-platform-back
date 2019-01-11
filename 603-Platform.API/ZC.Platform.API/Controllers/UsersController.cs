@@ -13,6 +13,7 @@ using Newtonsoft.Json;
 using System.IO;
 using ZC.Platform.Model;
 using static ZC.Platform.API.Model.UsersModel;
+using static ZC.Platform.API.Model.BaseModel;
 
 namespace ZC.Platform.API.Controllers
 {
@@ -20,12 +21,12 @@ namespace ZC.Platform.API.Controllers
     public class UsersController : Controller
     {
         /// <summary>
-        /// 管理员注册
+        /// 管理员注册新用户
         /// </summary>
         /// <param name="user"></param>
         /// <returns></returns>
-        [HttpPost("InsertOrUpdate")]
-        public ResUsersBase InsertOrUpdate([FromBody]ReqUsersBase user)
+        [HttpPost("Add")]
+        public ResUsersBase Add([FromBody]ReqUsersBase user)
         {
             ResUsersBase retValue = new ResUsersBase();
             using (var db = DbContext.GetInstance("T_USERS"))
@@ -35,17 +36,194 @@ namespace ZC.Platform.API.Controllers
                     //设置创建时间
                     user.createTime = DateTime.Now;
 
-                    db.InsertOrUpdate(user);
-                    retValue.SuccessDefalut(1);
+                    var isExist = db.Queryable<UsersBase>()
+                         .Any(s => s.username == user.username);
+
+                    if (!isExist)
+                    {
+                        db.Insert(user);
+                        retValue.SuccessDefalut("创建新用户成功！", 1);
+                    }
+                    else
+                    {
+                        retValue.FailDefalut("用户已存在，请更新账号！");
+                    }
+
                 }
                 catch (Exception ex)
                 {
                     retValue.FailDefalut(ex);
                 }
-                
+
             }
             return retValue;
         }
+
+        /// <summary>
+        /// 用户登录 
+        /// </summary>
+        /// <param name="users"></param>
+        /// <returns></returns>
+        [HttpPost("Login")]
+        public ResLogin Login([FromBody]ReqUsersBase user)
+        {
+            ResLogin retValue = new ResLogin();
+            using (var db = DbContext.GetInstance("T_USERS"))
+            {
+                try
+                {
+                    var userInfo = db.Queryable<UsersBase>()
+                        .Where(s => s.username == user.username)
+                        .Where(s => s.password == user.password)
+                        .FirstOrDefault();
+
+                    retValue.SuccessDefalut(userInfo, 1, "账号或者密码错误");
+                }
+                catch (Exception ex)
+                {
+                    retValue.FailDefalut(ex);
+                }
+
+            }
+            return retValue;
+        }
+
+
+        /// <summary>
+        /// （未完成）短信
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        [HttpPost("PhoneLogin")]
+        public ResLogin PhoneLogin([FromBody]ReqUsersBase user)
+        {
+            ResLogin retValue = new ResLogin();
+            using (var db = DbContext.GetInstance("T_USERS"))
+            {
+                try
+                {
+                    var userInfo = db.Queryable<UsersBase>()
+                        .Where(s => s.phoneNum == user.phoneNum)
+                        .FirstOrDefault();
+
+                    retValue.SuccessDefalut(userInfo, 1, "手机号或者验证码错误");
+                }
+                catch (Exception ex)
+                {
+                    retValue.FailDefalut(ex);
+                }
+
+            }
+            return retValue;
+        }
+
+
+        /// <summary>
+        /// 首次登录请填写详情
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        [HttpPost("Update")]
+        public ResUsersBase Update([FromBody]ReqUsersBase user)
+        {
+            ResUsersBase retValue = new ResUsersBase();
+            using (var db = DbContext.GetInstance("T_USERS"))
+            {
+                try
+                {
+                    //设置禁止更新列
+                    db.AddDisableUpdateColumns("username", "password","is_admin");
+
+                    bool isIDExist = db.Queryable<UsersBase>()
+                        .Any(s => s.ID == user.ID);
+                    if (isIDExist)
+                    {
+                        #region 验证必填信息及其格式
+
+                        //登录后将获取的信息存在本地 然后用于请求
+                        if (string.IsNullOrEmpty(user.phoneNum))
+                        {
+                            retValue.FailDefalut("请填写正确的手机号！");
+                        }
+                        else if (string.IsNullOrEmpty(user.realName))
+                        {
+                            retValue.FailDefalut("请填写真实姓名！");
+                        }
+                        else if (string.IsNullOrEmpty(user.uCode))
+                        {
+                            retValue.FailDefalut("请填写你的学号！");
+                        }
+                        else if (string.IsNullOrEmpty(user.idCard))
+                        {
+                            retValue.FailDefalut("请填写你的身份证信息！");
+                        }
+                        #endregion
+
+                        db.Update(user);
+                        retValue.SuccessDefalut("更新成功！", 1);
+                    }
+                    else
+                    {
+                        retValue.FailDefalut("不存在该用户ID");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    retValue.FailDefalut(ex);
+                }
+
+            }
+            return retValue;
+        }
+
+
+        /// <summary>
+        /// 根据手机号修改密码
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        [HttpPost("UpdatePassword")]
+        public ResUsersBase UpdatePassword([FromBody]ReqUsersBase user)
+        {
+            ResUsersBase retValue = new ResUsersBase();
+            using (var db = DbContext.GetInstance("T_USERS"))
+            {
+                try
+                {
+                    //设置禁止更新列
+                    db.AddDisableUpdateColumns("username", "is_admin");
+
+                    var isExist = db.Queryable<UsersBase>()
+                        .Any(s => s.phoneNum == user.phoneNum);
+                    if (isExist)
+                    {
+                        #region 验证必填信息及其格式
+
+                        if (string.IsNullOrEmpty(user. password))
+                        {
+                            retValue.FailDefalut("请填写你的新密码！");
+                        }
+
+                        #endregion
+                        db.Update<UsersBase>(new { password = user.password }, it => it.phoneNum == user.phoneNum); //只更新密码列
+                        
+                        retValue.SuccessDefalut("更新成功！", 1);
+                    }
+                    else
+                    {
+                        retValue.FailDefalut("不存在该用户手机号");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    retValue.FailDefalut(ex);
+                }
+
+            }
+            return retValue;
+        }
+
+
 
 
         /// <summary>
@@ -164,7 +342,7 @@ namespace ZC.Platform.API.Controllers
                     var userList = db.Queryable<UsersBase>()
                         .Where(s => s.isMale == user.isMale)
                         .ToList();
-                    
+
                     //转化成前端友好的数据
                     //var list = userList.Select(s =>
                     //{
@@ -172,7 +350,7 @@ namespace ZC.Platform.API.Controllers
                     //    model = ModelConvert.FromTo<T_USERS, UsersBase>(s, model);
                     //    return model;
                     //}).ToList();
-                    
+
                     retValue.SuccessDefalut(userList, userList.Count);
                 }
             }

@@ -12,7 +12,7 @@ namespace ZC.Platform.Model
         /// Default:- 
         /// Nullable:False 
         /// </summary>
-        public int ID {get;set;}
+        public UInt32 ID {get;set;}
 
         /// <summary>
         /// Desc:主标题 
@@ -52,16 +52,23 @@ namespace ZC.Platform.Model
         /// <summary>
         /// Desc:是否置顶 
         /// Default:- 
-        /// Nullable:True 
+        /// Nullable:False 
         /// </summary>
-        public int? is_top {get;set;}
+        public int is_top {get;set;}
 
         /// <summary>
         /// Desc:排列序号 
         /// Default:- 
-        /// Nullable:True 
+        /// Nullable:False 
         /// </summary>
-        public int? sort {get;set;}
+        public int sort {get;set;}
+
+        /// <summary>
+        /// Desc:最近一次更新时间 
+        /// Default:- 
+        /// Nullable:False 
+        /// </summary>
+        public DateTime last_edit_time {get;set;}
 
         /// <summary>
         /// Desc:创建人姓名 
@@ -83,6 +90,20 @@ namespace ZC.Platform.Model
         /// Nullable:False 
         /// </summary>
         public DateTime create_time {get;set;}
+
+        /// <summary>
+        /// Desc:- 
+        /// Default:- 
+        /// Nullable:True 
+        /// </summary>
+        public string last_edit_user_code {get;set;}
+
+        /// <summary>
+        /// Desc:- 
+        /// Default:- 
+        /// Nullable:True 
+        /// </summary>
+        public string last_edit_user_name {get;set;}
 
     }
 }

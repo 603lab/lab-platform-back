@@ -78,18 +78,25 @@ namespace ZC.Platform.Model
         public string class_name {get;set;}
 
         /// <summary>
+        /// Desc:身份证号 
+        /// Default:- 
+        /// Nullable:True 
+        /// </summary>
+        public string idCard {get;set;}
+
+        /// <summary>
         /// Desc:技术方向 
         /// Default:- 
-        /// Nullable:False 
+        /// Nullable:True 
         /// </summary>
         public string tech_direction {get;set;}
 
         /// <summary>
         /// Desc:积分 
-        /// Default:- 
+        /// Default:0 
         /// Nullable:False 
         /// </summary>
-        public int scores {get;set;}
+        public UInt32 scores {get;set;}
 
         /// <summary>
         /// Desc:担当职责 
