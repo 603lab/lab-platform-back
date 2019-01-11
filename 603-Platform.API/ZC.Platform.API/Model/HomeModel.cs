@@ -3,13 +3,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using static ZC.Platform.API.Model.BaseModel;
+using ZC.Platform.API.BaseModel;
 
 namespace ZC.Platform.API.Model
 {
     public class HomeModel
     {
-        public class ReqNoticeBase : NoticeBoardBase
+        public class ReqNoticeBase : NOTICEBOARDBASE
         {
             public int currentPage{ get; set; }
             public int pageSize { get; set; }
@@ -22,7 +22,7 @@ namespace ZC.Platform.API.Model
         /// <summary>
         /// Task基类
         /// </summary>
-        public class ReqTaskBase : TaskBase
+        public class ReqTaskBase : TASKBASE
         {
             public int currentPage { get; set; }
             public int pageSize { get; set; }
@@ -33,12 +33,12 @@ namespace ZC.Platform.API.Model
         }
 
 
-        public class ResGetNoticese : ResponseModelBase<List<NoticeBoardBase>>
+        public class ResGetNoticese : ResponseModelBase<List<NOTICEBOARDBASE>>
         {
 
         }
 
-        public class ResGetTasks : ResponseModelBase<List<TaskBase>>
+        public class ResGetTasks : ResponseModelBase<List<TASKBASE>>
         {
 
         }

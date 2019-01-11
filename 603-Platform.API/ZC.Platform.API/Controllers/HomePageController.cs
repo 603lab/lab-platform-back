@@ -5,11 +5,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using MySugar;
 using MySqlSugar;
-using static ZC.Platform.API.Model.UsersModel;
-using static ZC.Platform.API.Model.BaseModel;
 using static ZC.Platform.API.Model.HomeModel;
 using static MyCommon.EnumCommon;
 using static MyCommon.UpdateCommon;
+using ZC.Platform.API.BaseModel;
 
 namespace ZC.Platform.API.Controllers
 {
@@ -30,12 +29,12 @@ namespace ZC.Platform.API.Controllers
                 try
                 {
                     //如果有信息被设置为置顶并且根据创建时间降序
-                    var topNoticeList = db.Queryable<NoticeBoardBase>()
+                    var topNoticeList = db.Queryable<NOTICEBOARDBASE>()
                         .Where(s => s.isTop == (int)isTop.Yes)
                         .OrderBy(s => s.lastEditTime, OrderByType.desc)
                         .ToList();
 
-                    var noticeList = db.Queryable<NoticeBoardBase>()
+                    var noticeList = db.Queryable<NOTICEBOARDBASE>()
                      .Where(s => s.isTop == (int)isTop.No)
                     .OrderBy(s => s.createTime, OrderByType.desc)
                     .ToList();
@@ -44,7 +43,7 @@ namespace ZC.Platform.API.Controllers
                     var reList = topNoticeList.Union(noticeList)
                         .ToList();
                     //0是第一页
-                    var resultList = reList.Skip(notice.currentPage* notice.pageSize).Take(notice.pageSize).ToList();
+                    var resultList = reList.Skip((notice.currentPage - 1) * notice.pageSize).Take(notice.pageSize).ToList();
 
                     retValue.SuccessDefalut(resultList, reList.Count);
 
@@ -103,7 +102,7 @@ namespace ZC.Platform.API.Controllers
             {
                 try
                 {
-                    bool isIDExist = db.Queryable<NoticeBoardBase>()
+                    bool isIDExist = db.Queryable<NOTICEBOARDBASE>()
                       .Any(s => s.ID == notice.ID);
                     if (isIDExist)
                     {
@@ -116,9 +115,9 @@ namespace ZC.Platform.API.Controllers
                         notice.lastEditUserCode = notice.createUserCode;
                         notice.lastEditUserName = notice.createUserName;
 
-                        var noticeModel = new NoticeBoardBase();
+                        var noticeModel = new NOTICEBOARDBASE();
 
-                        db.Update<NoticeBoardBase>(
+                        db.Update<NOTICEBOARDBASE>(
                             new
                             {
                                 mainTitle = notice.mainTitle,
@@ -165,12 +164,12 @@ namespace ZC.Platform.API.Controllers
                 try
                 {
                     //如果有信息被设置为置顶并且根据创建时间降序
-                    var TaskList = db.Queryable<TaskBase>()
+                    var TaskList = db.Queryable<TASKBASE>()
                         .Where(s => s.isDone == task.isDone)
                         .OrderBy(s => s.lastEditTime, OrderByType.desc)
                         .ToList();
                     //分页 0是第一页
-                    var reList = TaskList.Skip(task.currentPage * task.pageSize)
+                    var reList = TaskList.Skip((task.currentPage-1) * task.pageSize)
                          .Take(task.pageSize).ToList();
                   
                     retValue.SuccessDefalut(reList, TaskList.Count);
@@ -232,7 +231,7 @@ namespace ZC.Platform.API.Controllers
             {
                 try
                 {
-                    bool isIDExist = db.Queryable<TaskBase>()
+                    bool isIDExist = db.Queryable<TASKBASE>()
                       .Any(s => s.ID == task.ID);
                     if (isIDExist)
                     {
@@ -249,10 +248,10 @@ namespace ZC.Platform.API.Controllers
                         task.lastEditUserCode = task.createUserCode;
                         task.lastEditUserName = task.createUserName;
                         
-                        var taskModel = new TaskBase();
+                        var taskModel = new TASKBASE();
                         
                         //只更新需要更新的部分
-                        db.Update<TaskBase>(
+                        db.Update<TASKBASE>(
                             new
                             {
                                 taskTitle = task.taskTitle,

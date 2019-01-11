@@ -13,7 +13,7 @@ using Newtonsoft.Json;
 using System.IO;
 using ZC.Platform.Model;
 using static ZC.Platform.API.Model.UsersModel;
-using static ZC.Platform.API.Model.BaseModel;
+using ZC.Platform.API.BaseModel;
 
 namespace ZC.Platform.API.Controllers
 {
@@ -36,7 +36,7 @@ namespace ZC.Platform.API.Controllers
                     //设置创建时间
                     user.createTime = DateTime.Now;
 
-                    var isExist = db.Queryable<UsersBase>()
+                    var isExist = db.Queryable<USERSBASE>()
                          .Any(s => s.username == user.username);
 
                     if (!isExist)
@@ -72,7 +72,7 @@ namespace ZC.Platform.API.Controllers
             {
                 try
                 {
-                    var userInfo = db.Queryable<UsersBase>()
+                    var userInfo = db.Queryable<USERSBASE>()
                         .Where(s => s.username == user.username)
                         .Where(s => s.password == user.password)
                         .FirstOrDefault();
@@ -102,7 +102,7 @@ namespace ZC.Platform.API.Controllers
             {
                 try
                 {
-                    var userInfo = db.Queryable<UsersBase>()
+                    var userInfo = db.Queryable<USERSBASE>()
                         .Where(s => s.phoneNum == user.phoneNum)
                         .FirstOrDefault();
 
@@ -134,7 +134,7 @@ namespace ZC.Platform.API.Controllers
                     //设置禁止更新列
                     db.AddDisableUpdateColumns("username", "password","is_admin");
 
-                    bool isIDExist = db.Queryable<UsersBase>()
+                    bool isIDExist = db.Queryable<USERSBASE>()
                         .Any(s => s.ID == user.ID);
                     if (isIDExist)
                     {
@@ -193,7 +193,7 @@ namespace ZC.Platform.API.Controllers
                     //设置禁止更新列
                     db.AddDisableUpdateColumns("username", "is_admin");
 
-                    var isExist = db.Queryable<UsersBase>()
+                    var isExist = db.Queryable<USERSBASE>()
                         .Any(s => s.phoneNum == user.phoneNum);
                     if (isExist)
                     {
@@ -205,7 +205,7 @@ namespace ZC.Platform.API.Controllers
                         }
 
                         #endregion
-                        db.Update<UsersBase>(new { password = user.password }, it => it.phoneNum == user.phoneNum); //只更新密码列
+                        db.Update<USERSBASE>(new { password = user.password }, it => it.phoneNum == user.phoneNum); //只更新密码列
                         
                         retValue.SuccessDefalut("更新成功！", 1);
                     }
@@ -245,8 +245,8 @@ namespace ZC.Platform.API.Controllers
                         .Where(s => s.ID == user.ID)
                         .FirstOrDefault();
                     //转化成前端友好的数据
-                    UsersBase users = new UsersBase();
-                    users = ModelConvert.FromTo<T_USERS, UsersBase>(my, users);
+                    USERSBASE users = new USERSBASE();
+                    users = ModelConvert.FromTo<T_USERS, USERSBASE>(my, users);
                     retValue.SuccessDefalut(users, 1, "不存在该用户");
 
                     //记录日志
@@ -279,9 +279,9 @@ namespace ZC.Platform.API.Controllers
                         .Where(s => s.ID == user.ID)
                         .FirstOrDefault();
 
-                    UsersBase users = new UsersBase();
+                    USERSBASE users = new USERSBASE();
                     //转化成前端友好的数据
-                    users = ModelConvert.FromTo<T_USERS, UsersBase>(my, users);
+                    users = ModelConvert.FromTo<T_USERS, USERSBASE>(my, users);
                     retValue.SuccessDefalut(users, 1, "不存在该用户");
 
                 }
@@ -311,8 +311,8 @@ namespace ZC.Platform.API.Controllers
                         .Where(s => s.ID == user.ID)
                         .FirstOrDefault();
                     //转化成前端友好的数据
-                    UsersBase users = new UsersBase();
-                    users = ModelConvert.FromTo<T_USERS, UsersBase>(my, users);
+                    USERSBASE users = new USERSBASE();
+                    users = ModelConvert.FromTo<T_USERS, USERSBASE>(my, users);
                     retValue.SuccessDefalut(users, 1, "不存在该用户");
 
                 }
@@ -339,7 +339,7 @@ namespace ZC.Platform.API.Controllers
                 //获取转化表格
                 using (var db = DbContext.GetInstance())
                 {
-                    var userList = db.Queryable<UsersBase>()
+                    var userList = db.Queryable<USERSBASE>()
                         .Where(s => s.isMale == user.isMale)
                         .ToList();
 

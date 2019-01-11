@@ -4,8 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ZC.Platform.API.BaseModel;
 using ZC.Platform.Model;
-using static ZC.Platform.API.Model.BaseModel;
 
 namespace ZC.Platform.API.Model
 {
@@ -16,7 +16,7 @@ namespace ZC.Platform.API.Model
         /// <summary>
         ///通用请求类和返回类
         /// </summary>
-        public class ReqUsersBase : UsersBase
+        public class ReqUsersBase : USERSBASE
         {
 
         }
@@ -25,7 +25,7 @@ namespace ZC.Platform.API.Model
 
         }
 
-        public class ResLogin : ResponseModelBase<UsersBase>
+        public class ResLogin : ResponseModelBase<USERSBASE>
         {
 
         }
@@ -34,7 +34,7 @@ namespace ZC.Platform.API.Model
 
         #region GetUser
 
-        public class ReqGetUser : UsersBase
+        public class ReqGetUser : USERSBASE
         {
 
         }
@@ -42,12 +42,12 @@ namespace ZC.Platform.API.Model
         /// <summary>
         /// 返回类
         /// </summary>
-        public class ResGetUserList : ResponseModelBase<List<UsersBase>>
+        public class ResGetUserList : ResponseModelBase<List<USERSBASE>>
         {
 
         }
 
-        public class ResGetUser : ResponseModelBase<UsersBase>
+        public class ResGetUser : ResponseModelBase<USERSBASE>
         {
 
         }

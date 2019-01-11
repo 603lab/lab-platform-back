@@ -22,7 +22,6 @@ namespace MySugar
         {
             string logContent = string.Empty;
             var db = new SqlSugarClient(ConnectionString);
-
             return db;
         }
 
