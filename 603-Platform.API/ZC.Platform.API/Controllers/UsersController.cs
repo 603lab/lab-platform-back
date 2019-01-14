@@ -330,17 +330,16 @@ namespace ZC.Platform.API.Controllers
         /// </summary>
         /// <param name="user"></param>
         /// <returns></returns>
-        [HttpPost("GetUserList")]
-        public ResGetUserList GetUserList([FromBody]ReqGetUser user)
+        [HttpGet("GetUserList")]
+        public ResGetUserList GetUserList([FromHeader]ReqGetUser user)
         {
             ResGetUserList retValue = new ResGetUserList();
             try
             {
                 //获取转化表格
-                using (var db = DbContext.GetInstance())
+                using (var db = DbContext.GetInstance("T_USERS"))
                 {
                     var userList = db.Queryable<USERSBASE>()
-                        .Where(s => s.isMale == user.isMale)
                         .ToList();
 
                     //转化成前端友好的数据

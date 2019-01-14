@@ -31,6 +31,13 @@ namespace ZC.Platform.API.BaseModel
         public int level {get;set;}
 
         /// <summary>
+        /// Desc:父级路径 
+        /// Default:- 
+        /// Nullable:True 
+        /// </summary>
+        public string parentCode {get;set;}
+
+        /// <summary>
         /// Desc:是否为菜单 
         /// Default:- 
         /// Nullable:False 
@@ -47,7 +54,7 @@ namespace ZC.Platform.API.BaseModel
         /// <summary>
         /// Desc:文件存储地址 
         /// Default:- 
-        /// Nullable:False 
+        /// Nullable:True 
         /// </summary>
         public string fileAddress {get;set;}
 

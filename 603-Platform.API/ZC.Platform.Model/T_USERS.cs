@@ -182,5 +182,19 @@ namespace ZC.Platform.Model
         /// </summary>
         public DateTime create_time {get;set;}
 
+        /// <summary>
+        /// Desc:关注人数 
+        /// Default:- 
+        /// Nullable:False 
+        /// </summary>
+        public int follow_num {get;set;}
+
+        /// <summary>
+        /// Desc:被关注数 
+        /// Default:- 
+        /// Nullable:False 
+        /// </summary>
+        public int followed_num {get;set;}
+
     }
 }
