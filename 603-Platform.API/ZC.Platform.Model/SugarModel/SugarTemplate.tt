@@ -24,11 +24,15 @@
     //解决方案目录
     string solutionDir = Host.ResolveAssemblyReference("$(SolutionDir)");
 	//配置文件路径
+	
+	//删除 '\'
+	int lastIndex = projectDir.LastIndexOf('\\');
+    string apiPath = projectDir.Remove(lastIndex);
+    int last2Index = apiPath.LastIndexOf('\\') + 1;
+    apiPath = apiPath.Remove(last2Index, apiPath.Length - last2Index);
 
 	//获取appsettings.json路径
-    string path = Path.GetFullPath(".") + "\\603-Platform.API\\ZC.Platform.API\\appsettings.json ";
-
-	
+    string path = apiPath + "\\ZC.Platform.API\\appsettings.json";
 
     //获取Json报文  
 	string json = string.Empty;
@@ -47,9 +51,9 @@
         using (var db = new SqlSugarClient(ConnectionString))
         {
             //生成到ZC.Platform.Model层之下
-            string modelPath = Path.GetFullPath(".")  + "\\603-Platform.API\\ZC.Platform.Model";
+            string modelPath = apiPath  + "\\ZC.Platform.Model";
 
-			string baseModelPath = Path.GetFullPath(".") + "\\603-Platform.API\\ZC.Platform.API\\BaseModel";
+			string baseModelPath = apiPath + "\\ZC.Platform.API\\BaseModel";
 
 			 //删除baseModel模板
 			DeleteAllCS(baseModelPath);
