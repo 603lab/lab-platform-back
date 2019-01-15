@@ -140,27 +140,36 @@ namespace ZC.Platform.API.Controllers
                     {
                         #region 验证必填信息及其格式
 
+                        bool status = true;
+
                         //登录后将获取的信息存在本地 然后用于请求
                         if (string.IsNullOrEmpty(user.phoneNum))
                         {
                             retValue.FailDefalut("请填写正确的手机号！");
+                            status = false;
                         }
                         else if (string.IsNullOrEmpty(user.realName))
                         {
                             retValue.FailDefalut("请填写真实姓名！");
+                            status = false;
                         }
                         else if (string.IsNullOrEmpty(user.uCode))
                         {
                             retValue.FailDefalut("请填写你的学号！");
+                            status = false;
                         }
                         else if (string.IsNullOrEmpty(user.idCard))
                         {
                             retValue.FailDefalut("请填写你的身份证信息！");
+                            status = false;
                         }
                         #endregion
-
-                        db.Update(user);
-                        retValue.SuccessDefalut("更新成功！", 1);
+                        if (status)
+                        {
+                            db.Update(user);
+                            retValue.SuccessDefalut("更新成功！", 1);
+                        }
+                        
                     }
                     else
                     {

@@ -56,8 +56,22 @@ namespace ZC.Platform.API.Model
             /// 作者关注数
             /// </summary>
             public followRange followNum { get; set; }
+
+            public int currentPage { get; set; }
+            public int pageSize { get; set; }
         }
         public class ResSearch : ResponseModelBase<List<ANNEXBASE>>
+        {
+
+        }
+        #endregion
+
+        #region AddDoc
+        public class ReqAddDoc : ANNEXBASE
+        {
+
+        }
+        public class ResAddDoc : ResponseModelBase
         {
 
         }

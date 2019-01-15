@@ -94,9 +94,11 @@ namespace ZC.Platform.API.Controllers
                             annexList.Where<T_USERS>((it, it2) => it2.followed_num <= req.followNum.max);
                         }
                     }
-                    var resultList = annexList.ToList();
+                    //在取分页总数的时候节省性能
+                    var totalList = annexList.ToList();
+                    var  resultList = totalList.Skip((req.currentPage - 1) * req.pageSize).Take(req.pageSize).ToList();
 
-                    retValue.SuccessDefalut(resultList, resultList.Count);
+                    retValue.SuccessDefalut(resultList, totalList.Count);
 
                 }
                 catch (Exception ex)
@@ -107,5 +109,74 @@ namespace ZC.Platform.API.Controllers
             }
             return retValue;
         }
+
+        /// <summary>
+        /// 创建文章
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        [HttpPost("AddDoc")]
+        public ResAddDoc AddDoc([FromBody] ReqAddDoc req)
+        {
+            ResAddDoc retValue = new ResAddDoc();
+
+            using (var db = DbContext.GetInstance("T_ANNEX"))
+            {
+
+                #region 判断必填项
+                bool status = true;
+                if (req.parentId == 0)
+                {
+                    retValue.FailDefalut("请填写文件父类ID");
+                    status = false;
+                }
+                if (string.IsNullOrEmpty(req.fileAddress))
+                {
+                    retValue.FailDefalut("请填写文件地址");
+                    status = false;
+                }
+                if (string.IsNullOrEmpty(req.fileName))
+                {
+                    retValue.FailDefalut("请填写文件地址");
+                    status = false;
+                }
+                //这里需要维护一个字典表 转化type code
+                if (string.IsNullOrEmpty(req.type))
+                {
+                    retValue.FailDefalut("请填写文件类型");
+                    status = false;
+                }
+                if (string.IsNullOrEmpty(req.createUserCode))
+                {
+                    retValue.FailDefalut("必填参数创建人编号");
+                    status = false;
+                }
+                if (string.IsNullOrEmpty(req.createUserName))
+                {
+                    retValue.FailDefalut("必填参数创建人姓名");
+                    status = false;
+                }
+
+                #endregion
+                try
+                {
+                    if (status)
+                    {
+                        //设置创建时间
+                        req.createTime = DateTime.Now;
+                        db.Insert(req);
+                        retValue.SuccessDefalut("创建成功",1);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    retValue.FailDefalut(ex);
+                }
+            }
+
+                return retValue;
+        }
+
+
     }
 }
