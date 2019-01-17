@@ -39,5 +39,35 @@ namespace MyCommon
             /// </summary>
             No = 0
         }
+
+        /// <summary>
+        /// 点赞
+        /// </summary>
+        public enum isLike : int
+        {
+            /// <summary>
+            /// 点赞
+            /// </summary>
+            Yes = 1,
+            /// <summary>
+            /// 取消赞
+            /// </summary>
+            No = 0
+        }
+
+        /// <summary>
+        /// 收藏
+        /// </summary>
+        public enum isCollected : int
+        {
+            /// <summary>
+            /// 收藏
+            /// </summary>
+            Yes = 1,
+            /// <summary>
+            /// 取消收藏
+            /// </summary>
+            No = 0
+        }
     }
 }

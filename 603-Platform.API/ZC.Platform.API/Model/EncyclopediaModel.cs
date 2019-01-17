@@ -60,6 +60,20 @@ namespace ZC.Platform.API.Model
             public int currentPage { get; set; }
             public int pageSize { get; set; }
         }
+
+        public class SearchResult : ANNEXBASE
+        {
+            /// <summary>
+            /// 当前用户是否已经点赞该信息
+            /// </summary>
+            public int isLike { get; set; }
+
+            /// <summary>
+            /// 当前用户是否收藏当前信息
+            /// </summary>
+            public int isCollected { get; set; }
+        }
+
         public class ResSearch : ResponseModelBase<List<ANNEXBASE>>
         {
 
@@ -75,6 +89,31 @@ namespace ZC.Platform.API.Model
         {
 
         }
+        #endregion
+
+        #region Like
+        public class ReqLike : LIKEBASE
+        {
+            public int isLike { get; set; }
+        }
+        public class ResLike : ResponseModelBase
+        {
+
+        }
+
+        #endregion
+
+
+        #region Collect
+        public class ReqCollect : COLLECTIONBASE
+        {
+            public int isCollect { get; set; }
+        }
+        public class ResCollect : ResponseModelBase
+        {
+
+        }
+
         #endregion
     }
 }
