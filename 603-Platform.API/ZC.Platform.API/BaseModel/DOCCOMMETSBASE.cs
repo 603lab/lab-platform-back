@@ -49,7 +49,7 @@ namespace ZC.Platform.API.BaseModel
         /// Default:- 
         /// Nullable:True 
         /// </summary>
-        public int? replyUserCode {get;set;}
+        public string replyUserCode {get;set;}
 
         /// <summary>
         /// Desc:回复的用户名称 

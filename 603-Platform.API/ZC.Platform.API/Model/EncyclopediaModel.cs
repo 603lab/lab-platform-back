@@ -35,7 +35,7 @@ namespace ZC.Platform.API.Model
             public int? max { get; set; }
             public int? min { get; set; }
         }
-        public class ReqSearch 
+        public class ReqSearch
         {
             /// <summary>
             /// 标签
@@ -47,9 +47,9 @@ namespace ZC.Platform.API.Model
             /// </summary>
             public string authorName { get; set; }
 
-           /// <summary>
-           /// 文章点赞数
-           /// </summary>
+            /// <summary>
+            /// 文章点赞数
+            /// </summary>
             public likeRange likeNum { get; set; }
 
             /// <summary>
@@ -59,6 +59,8 @@ namespace ZC.Platform.API.Model
 
             public int currentPage { get; set; }
             public int pageSize { get; set; }
+
+            public string createUserCode { get; set; }
         }
 
         public class SearchResult : ANNEXBASE
@@ -66,15 +68,15 @@ namespace ZC.Platform.API.Model
             /// <summary>
             /// 当前用户是否已经点赞该信息
             /// </summary>
-            public int isLike { get; set; }
+            public bool isLike { get; set; }
 
             /// <summary>
             /// 当前用户是否收藏当前信息
             /// </summary>
-            public int isCollected { get; set; }
+            public bool isCollected { get; set; }
         }
 
-        public class ResSearch : ResponseModelBase<List<ANNEXBASE>>
+        public class ResSearch : ResponseModelBase<List<SearchResult>>
         {
 
         }
@@ -103,7 +105,6 @@ namespace ZC.Platform.API.Model
 
         #endregion
 
-
         #region Collect
         public class ReqCollect : COLLECTIONBASE
         {
@@ -114,6 +115,101 @@ namespace ZC.Platform.API.Model
 
         }
 
+        #endregion
+
+        #region GetDocConetnt
+
+        public class DocContent : ANNEXBASE
+        {
+            public bool isLike { get; set; }
+            public bool isCollected { get; set; }
+        }
+
+        public class ReqGetDocConetnt : ANNEXBASE
+        {
+
+        }
+        public class ResGetDocConetnt : ResponseModelBase<DocContent>
+        {
+
+        }
+
+        #endregion
+
+        #region AddBrowseNum
+        public class ReqAddBrowseNum : ANNEXBASE
+        {
+
+        }
+        public class ResAddBrowseNum : ResponseModelBase
+        {
+
+        }
+
+        #endregion
+
+        #region UpdateDoc
+        public class ReqUpdateDoc : ANNEXBASE
+        {
+
+        }
+        public class ResUpdateDoc : ResponseModelBase
+        {
+
+        }
+        #endregion
+
+        #region GetEditHistory
+
+        public class ReqGetEditHistory
+        {
+            public int ID { get; set; }
+            public DateTime createTime { get; set; }
+        }
+        public class ResGetEditHistory : ResponseModelBase<List<EDITDETIALSBASE>>
+        {
+
+        }
+        #endregion
+
+        #region DeleteDoc
+
+        public class ReqDeleteDoc : ANNEXBASE
+        {
+
+        }
+        public class ResDeleteDoc : ResponseModelBase
+        {
+
+        }
+        #endregion
+
+        #region AddComments
+        public class ReqAddComments : DOCCOMMETSBASE
+        {
+
+        }
+        public class ResAddComments : ResponseModelBase
+        {
+
+        }
+        #endregion
+
+        #region GetComments
+
+        public class Comments: DOCCOMMETSBASE
+        {
+            public bool isLike { get; set; }
+        }
+
+        public class ReqGetComments : DOCCOMMETSBASE
+        {
+
+        }
+        public class ResGetComments : ResponseModelBase<List<Comments>>
+        {
+
+        }
         #endregion
     }
 }

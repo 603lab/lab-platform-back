@@ -33,7 +33,7 @@ namespace MyCommon
             Message = "调用成功!";
             Count = totalCount;
         }
-        public void SuccessDefalut(string message,int totalCount)
+        public void SuccessDefalut(string message, int totalCount)
         {
             statusCode = 200;
             isSuccess = true;
@@ -63,7 +63,7 @@ namespace MyCommon
         }
     }
 
-   
+
 
     /// <summary>
     /// 返回基类
@@ -112,7 +112,7 @@ namespace MyCommon
         /// <param name="TData"></param>
         /// <param name="totalCount"></param>
         /// <param name="isNullReason"></param>
-        public virtual void SuccessDefalut(T TData, int totalCount,string isNullReason)
+        public virtual void SuccessDefalut(T TData, int totalCount, string isNullReason)
         {
             if (TData != null)
             {
@@ -143,6 +143,13 @@ namespace MyCommon
             Count = 0;
             Message = ex.Message;
 
+        }
+        public virtual void FailDefalut(string error)
+        {
+            statusCode = -100;
+            isSuccess = false;
+            Message = error;
+            Count = 0;
         }
     }
 

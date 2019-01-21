@@ -56,6 +56,21 @@ namespace MyCommon
         }
 
         /// <summary>
+        /// 是否为回答
+        /// </summary>
+        public enum isReply : int
+        {
+            /// <summary>
+            /// 回复项
+            /// </summary>
+            Yes = 1,
+            /// <summary>
+            /// 非回复项
+            /// </summary>
+            No = 0
+        }
+
+        /// <summary>
         /// 收藏
         /// </summary>
         public enum isCollected : int
@@ -69,5 +84,37 @@ namespace MyCommon
             /// </summary>
             No = 0
         }
+
+        /// <summary>
+        /// 提交报文类型
+        /// </summary>
+        public enum JsonDetailType 
+        {
+            /// <summary>
+            /// 新增
+            /// </summary>
+            Add,
+            /// <summary>
+            /// 更新
+            /// </summary>
+            Update
+
+        }
+
+        /// <summary>
+        /// 点赞类型
+        /// </summary>
+        public enum LikeType
+        {
+            /// <summary>
+            /// doc类型的点赞
+            /// </summary>
+            Doc,
+            /// <summary>
+            /// 评论类型的点赞
+            /// </summary>
+            Comment
+        }
+
     }
 }

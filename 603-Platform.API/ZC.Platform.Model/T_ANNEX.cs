@@ -64,6 +64,13 @@ namespace ZC.Platform.Model
         public int like_num {get;set;}
 
         /// <summary>
+        /// Desc:文章被收藏数量 
+        /// Default:- 
+        /// Nullable:False 
+        /// </summary>
+        public int collect_num {get;set;}
+
+        /// <summary>
         /// Desc:浏览数 
         /// Default:- 
         /// Nullable:False 

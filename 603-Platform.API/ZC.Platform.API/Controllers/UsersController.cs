@@ -241,7 +241,7 @@ namespace ZC.Platform.API.Controllers
         /// <param name="user"></param>
         /// <returns></returns>
         [HttpGet("GetUrl")]
-        public ResGetUser GetUrl([FromForm]ReqGetUser user)
+        public ResGetUser GetUrl([FromHeader]ReqGetUser user)
         {
             ResGetUser retValue = new ResGetUser();
             string logContent = string.Empty;

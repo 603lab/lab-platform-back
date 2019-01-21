@@ -47,7 +47,7 @@ namespace ZC.Platform.Model
         /// Default:- 
         /// Nullable:True 
         /// </summary>
-        public int? reply_user_code {get;set;}
+        public string reply_user_code {get;set;}
 
         /// <summary>
         /// Desc:回复的用户名称 

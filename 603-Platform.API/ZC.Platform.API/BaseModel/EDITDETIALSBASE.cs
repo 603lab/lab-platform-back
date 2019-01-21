@@ -31,11 +31,18 @@ namespace ZC.Platform.API.BaseModel
         public string detail {get;set;}
 
         /// <summary>
-        /// Desc:日志相关编号 
+        /// Desc:是增加还是编辑 
         /// Default:- 
         /// Nullable:False 
         /// </summary>
-        public int logId {get;set;}
+        public string type {get;set;}
+
+        /// <summary>
+        /// Desc:日志相关编号 
+        /// Default:- 
+        /// Nullable:True 
+        /// </summary>
+        public int? logId {get;set;}
 
         /// <summary>
         /// Desc:创建者编号 

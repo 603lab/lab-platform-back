@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MySqlSugar;
 using MySugar;
+using Newtonsoft.Json;
 using ZC.Platform.API.BaseModel;
 using ZC.Platform.Model;
 using static MyCommon.EnumCommon;
@@ -97,10 +98,27 @@ namespace ZC.Platform.API.Controllers
                         }
                     }
                     //在取分页总数的时候节省性能
+
                     var totalList = annexList.ToList();
+
                     var resultList = totalList.Skip((req.currentPage - 1) * req.pageSize).Take(req.pageSize).ToList();
 
-                    retValue.SuccessDefalut(resultList, totalList.Count);
+                    List<SearchResult> resList = new List<SearchResult>();
+                    foreach (var item in resultList)
+                    {
+                        SearchResult model = new SearchResult();
+                        ReqToDBGenericClass<ANNEXBASE, SearchResult>.ReqToDBInstance(item, model);
+
+                        model.isLike = db.Queryable<T_LIKE>()
+                        .Any(s => s.item_id == item.ID && s.create_user_code == req.createUserCode && s.type == LikeType.Doc.ToString());
+
+                        model.isCollected = db.Queryable<T_COLLECTION>()
+                           .Any(s => s.item_id == item.ID && s.create_user_code == req.createUserCode);
+
+                        resList.Add(model);
+                    }
+
+                    retValue.SuccessDefalut(resList, totalList.Count);
 
                 }
                 catch (Exception ex)
@@ -160,14 +178,47 @@ namespace ZC.Platform.API.Controllers
                 }
 
                 #endregion
+
                 try
                 {
                     if (status)
                     {
                         //设置创建时间
                         req.createTime = DateTime.Now;
-                        db.Insert(req);
-                        retValue.SuccessDefalut("创建成功", 1);
+                        //事务
+                        try
+                        {
+                            db.BeginTran();//开启事务
+
+                            var id = db.Insert(req);
+
+                            //将报文上传 t_edit_detail 表
+                            string json = JsonConvert.SerializeObject(req);
+
+                            #region detail的处理
+
+                            T_EDIT_DETIALS detail = new T_EDIT_DETIALS();
+                            detail.create_time = DateTime.Now;
+                            detail.create_user_code = req.createUserCode;
+                            detail.create_user_name = req.createUserName;
+                            detail.detail = json;
+                            detail.relation_code = id.ObjToInt();
+                            detail.type = JsonDetailType.Add.ToString();
+                            db.Insert(detail);
+
+                            #endregion
+
+
+                            db.CommitTran();//提交事务
+                            retValue.SuccessDefalut("创建成功", 1);
+                        }
+                        catch (Exception ex)
+                        {
+                            db.RollbackTran();//回滚事务
+                            retValue.FailDefalut($"意外错误,错误信息：{ex.Message}");
+                        }
+
+
                     }
                 }
                 catch (Exception ex)
@@ -202,6 +253,11 @@ namespace ZC.Platform.API.Controllers
                     retValue.FailDefalut("必填参数创建人姓名");
                     status = false;
                 }
+                else if (!Enum.GetNames(typeof(LikeType)).Contains(req.type))
+                {
+                    retValue.FailDefalut("不存在该点赞类型，请修改");
+                    status = false;
+                }
                 else
                 {
                     status = db.Queryable<T_ANNEX>().Any(s => s.ID == req.itemId);
@@ -220,7 +276,7 @@ namespace ZC.Platform.API.Controllers
                         if (req.isLike == (int)isLike.Yes)
                         {
                             //判断是否重复创建点赞
-                            bool isExist = db.Queryable<LIKEBASE>().Any(s => s.itemId == req.itemId && s.createUserCode == req.createUserCode);
+                            bool isExist = db.Queryable<LIKEBASE>().Any(s => s.itemId == req.itemId && s.createUserCode == req.createUserCode &&s.type==req.type);
                             if (isExist)
                             {
                                 retValue.FailDefalut("请勿重复点赞！");
@@ -253,11 +309,11 @@ namespace ZC.Platform.API.Controllers
                                 catch (Exception ex)
                                 {
                                     db.RollbackTran();//回滚事务
-                                    retValue.FailDefalut("异常错误："+ex.Message);
+                                    retValue.FailDefalut("异常错误：" + ex.Message);
                                 }
-                                
 
-                            }  
+
+                            }
                         }
                         //删除点赞
                         else if (req.isLike == (int)isLike.No)
@@ -303,7 +359,7 @@ namespace ZC.Platform.API.Controllers
         }
 
         /// <summary>
-        /// 点赞/或取消点赞
+        /// 收藏取消收藏
         /// </summary>
         /// <param name="req"></param>
         /// <returns></returns>
@@ -349,19 +405,63 @@ namespace ZC.Platform.API.Controllers
                             }
                             else
                             {
+
                                 COLLECTIONBASE collection = new COLLECTIONBASE();
                                 //转化
                                 ReqToDBGenericClass<ReqCollect, COLLECTIONBASE>.ReqToDBInstance(req, collection);
-                                db.Insert(collection);
-                                retValue.SuccessDefalut("收藏成功!", 1);
+                                //获取原收藏数+1
+                                var annex = db.Queryable<T_ANNEX>().Where(s => s.ID == req.itemId).First();
+                                int collectNum = annex.collect_num + 1;
+
+                                try
+                                {
+                                    db.BeginTran();//开启事务
+                                    db.Insert(collection);
+                                    db.Update<T_ANNEX>(
+                                        new
+                                        {
+                                            collect_num = collectNum
+                                        },
+                                        it => it.ID == req.itemId
+                                        );
+                                    db.CommitTran();//提交事务
+                                    retValue.SuccessDefalut("收藏成功!", 1);
+                                }
+                                catch (Exception ex)
+                                {
+                                    db.RollbackTran();//回滚事务
+                                    retValue.FailDefalut("异常错误：" + ex.Message);
+                                }
+
                             }
                         }
                         //删除收藏
                         else if (req.isCollect == (int)isCollected.No)
                         {
                             var item = db.Queryable<COLLECTIONBASE>().Where(s => s.itemId == req.itemId && s.createUserCode == req.createUserCode).First();
-                            db.Delete(item);
-                            retValue.SuccessDefalut("取消收藏成功！", 1);
+
+                            var annex = db.Queryable<T_ANNEX>().Where(s => s.ID == req.itemId).First();
+                            int collectNum = annex.collect_num - 1;
+
+                            try
+                            {
+                                db.BeginTran();//开启事务
+                                db.Delete(item);
+                                db.Update<T_ANNEX>(
+                                    new
+                                    {
+                                        collect_num = collectNum
+                                    },
+                                    it => it.ID == req.itemId
+                                    );
+                                db.CommitTran();//提交事务
+                                retValue.SuccessDefalut("取消收藏成功!", 1);
+                            }
+                            catch (Exception ex)
+                            {
+                                db.RollbackTran();//回滚事务
+                                retValue.FailDefalut("异常错误：" + ex.Message);
+                            }
                         }
                         else
                         {
@@ -379,5 +479,461 @@ namespace ZC.Platform.API.Controllers
 
             return retValue;
         }
+
+        /// <summary>
+        ///获取文章具体内容
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        [HttpGet("GetDocConetnt")]
+        public ResGetDocConetnt GetDocConetnt([FromHeader]ReqGetDocConetnt req)
+        {
+            ResGetDocConetnt retValue = new ResGetDocConetnt();
+            using (var db = DbContext.GetInstance("T_ANNEX"))
+            {
+                try
+                {
+                    var res = db.Queryable<ANNEXBASE>()
+                        .Where(s => s.ID == req.ID)
+                       .FirstOrDefault();
+
+                    var model = new DocContent();
+                    ReqToDBGenericClass<ANNEXBASE, DocContent>.ReqToDBInstance(res, model);
+
+                    model.isLike = db.Queryable<T_LIKE>()
+                        .Any(s => s.item_id == req.ID && s.create_user_code == req.createUserCode && s.type == LikeType.Doc.ToString());
+
+                    model.isCollected = db.Queryable<T_COLLECTION>()
+                       .Any(s => s.item_id == req.ID && s.create_user_code == req.createUserCode);
+
+                    retValue.SuccessDefalut(model, 1, "不存在该Doc");
+                }
+                catch (Exception ex)
+                {
+                    retValue.FailDefalut(ex);
+                }
+
+            }
+            return retValue;
+        }
+
+        /// <summary>
+        ///增加浏览数 
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        [HttpPost("AddBrowseNum")]
+        public ResAddBrowseNum AddBrowseNum([FromBody] ReqAddBrowseNum req)
+        {
+            ResAddBrowseNum retValue = new ResAddBrowseNum();
+
+            using (var db = DbContext.GetInstance("T_ANNEX"))
+            {
+
+                #region 判断必填项
+                bool status = true;
+                if (req.ID == 0)
+                {
+                    retValue.FailDefalut("请填写Doc编号");
+                    status = false;
+                }
+
+                #endregion
+                try
+                {
+                    if (status)
+                    {
+                        //设置创建时间
+                        req.createTime = DateTime.Now;
+                        var annex = db.Queryable<ANNEXBASE>().Where(s => s.ID == req.ID).FirstOrDefault();
+                        if (annex != null)
+                        {
+                            db.Update<ANNEXBASE>(
+                           new
+                           {
+                               browseNum = annex.browseNum + 1
+                           },
+                        it => it.ID == req.ID
+                           );
+                            retValue.SuccessDefalut("增加浏览数成功", 1);
+                        }
+                        else
+                        {
+                            retValue.FailDefalut("不存在改Doc编号");
+                        }
+
+                    }
+                }
+                catch (Exception ex)
+                {
+                    retValue.FailDefalut(ex);
+                }
+            }
+
+            return retValue;
+        }
+
+        /// <summary>
+        /// 编辑文章  - 暂时不考虑权限
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        [HttpPost("UpdateDoc")]
+        public ResUpdateDoc UpdateDoc([FromBody] ReqUpdateDoc req)
+        {
+            ResUpdateDoc retValue = new ResUpdateDoc();
+
+            using (var db = DbContext.GetInstance("T_ANNEX"))
+            {
+
+                #region 判断必填项
+                bool status = true;
+
+                if (string.IsNullOrEmpty(req.createUserCode))
+                {
+                    retValue.FailDefalut("必填参数修改人编号");
+                    status = false;
+                }
+                else if (string.IsNullOrEmpty(req.createUserName))
+                {
+                    retValue.FailDefalut("必填参数创建人姓名");
+                    status = false;
+                }
+
+                #endregion
+
+                try
+                {
+                    if (status)
+                    {
+                        //设置创建时间
+                        req.createTime = DateTime.Now;
+
+                        try
+                        {
+                            db.BeginTran();
+
+                            db.Update<ANNEXBASE>(
+                                new
+                                {
+                                    fileTag = req.fileTag,
+                                    content = req.content
+                                },
+                                it => it.ID == req.ID
+                                );
+
+                            //将报文上传 t_edit_detail 表
+                            string json = JsonConvert.SerializeObject(req);
+
+                            #region detail的处理
+
+                            T_EDIT_DETIALS detail = new T_EDIT_DETIALS();
+                            detail.create_time = DateTime.Now;
+                            detail.create_user_code = req.createUserCode;
+                            detail.create_user_name = req.createUserName;
+                            detail.detail = json;
+                            detail.relation_code = req.ID;
+                            detail.type = JsonDetailType.Update.ToString();
+                            db.Insert(detail);
+
+                            #endregion
+
+                            db.CommitTran();//提交事务
+                            retValue.SuccessDefalut("更新成功", 1);
+                        }
+                        catch (Exception ex)
+                        {
+                            db.RollbackTran();//回滚事务
+                            retValue.FailDefalut($"意外错误,错误信息：{ex.Message}");
+                        }
+
+                    }
+                }
+                catch (Exception ex)
+                {
+                    retValue.FailDefalut(ex);
+                }
+            }
+
+            return retValue;
+        }
+
+        /// <summary>
+        ///获取当前文章所有的编辑历史
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        [HttpGet("GetEditHistory")]
+        public ResGetEditHistory GetEditHistory([FromHeader]ReqGetEditHistory req)
+        {
+            ResGetEditHistory retValue = new ResGetEditHistory();
+            using (var db = DbContext.GetInstance("T_EDIT_DETIALS"))
+            {
+                try
+                {
+
+                    var resultList = db.Queryable<EDITDETIALSBASE>()
+                        .Where(s => s.relationCode == req.ID)
+                        .ToList();
+
+                    retValue.SuccessDefalut(resultList, resultList.Count);
+
+                }
+                catch (Exception ex)
+                {
+                    retValue.FailDefalut(ex);
+                }
+
+            }
+            return retValue;
+        }
+
+        /// <summary>
+        /// 删除文章 - 需要考虑权限
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        [HttpPost("DeleteDoc")]
+        public ResDeleteDoc DeleteDoc([FromBody] ReqDeleteDoc req)
+        {
+            ResDeleteDoc retValue = new ResDeleteDoc();
+
+            using (var db = DbContext.GetInstance("T_ANNEX"))
+            {
+
+                #region 判断必填项
+                bool status = true;
+
+                if (string.IsNullOrEmpty(req.createUserCode))
+                {
+                    retValue.FailDefalut("必填参数修改人编号");
+                    status = false;
+                }
+                else if (string.IsNullOrEmpty(req.createUserName))
+                {
+                    retValue.FailDefalut("必填参数创建人姓名");
+                    status = false;
+                }
+
+                #endregion
+
+                try
+                {
+                    if (status)
+                    {
+                        //设置创建时间
+                        req.createTime = DateTime.Now;
+
+                        try
+                        {
+                            db.BeginTran();
+
+                            db.Delete<ANNEXBASE>(s => s.ID == req.ID);
+
+                            //这里需要加入删除的日志
+
+                            db.CommitTran();//提交事务
+                            retValue.SuccessDefalut("删除成功", 1);
+                        }
+                        catch (Exception ex)
+                        {
+                            db.RollbackTran();//回滚事务
+                            retValue.FailDefalut($"意外错误,错误信息：{ex.Message}");
+                        }
+
+                    }
+                }
+                catch (Exception ex)
+                {
+                    retValue.FailDefalut(ex);
+                }
+            }
+
+            return retValue;
+        }
+
+        //聊天部分:
+
+        /*
+         1.发表评论,回复
+         2.获取所有评论
+         3.喜欢,取消喜欢
+
+         */
+
+        /// <summary>
+        /// 发表评论 或者 回复
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        [HttpPost("AddComments")]
+        public ResAddComments AddComments([FromBody] ReqAddComments req)
+        {
+            ResAddComments retValue = new ResAddComments();
+
+            using (var db = DbContext.GetInstance("T_DOC_COMMETS"))
+            {
+
+                #region 判断必填项
+                bool status = true;
+                if (req.docId == 0)
+                {
+                    retValue.FailDefalut("请填写文件编号");
+                    status = false;
+                }
+                else if (req.isReply == 1)
+                {
+                    if (req.parentCode == null)
+                    {
+                        retValue.FailDefalut("请填写回复项 关联编号");
+                        status = false;
+                    }
+                    else if (string.IsNullOrEmpty(req.replyUserCode))
+                    {
+                        retValue.FailDefalut("请填写回复人编号");
+                        status = false;
+                    }
+                    else if (string.IsNullOrEmpty(req.replyUserName))
+                    {
+                        retValue.FailDefalut("请填写回复人姓名");
+                        status = false;
+                    }
+                    else if (req.replyUserCode == req.createUserCode)
+                    {
+                        retValue.FailDefalut("大哥，你自己回复自己，闹着玩呢？");
+                        status = false;
+                    }
+                    else
+                    {
+                        //判断parentId
+                        status = db.Queryable<DOCCOMMETSBASE>()
+                        .Any(s => s.ID == req.parentCode);
+                        retValue.FailDefalut("不存在该父类编号");
+                    }
+                }
+                else if (req.isReply == 0)
+                {
+                    //非回复项 放置前端请求错误信息 清空
+                    req.replyUserCode = null;
+                    req.replyUserName = null;
+                    req.parentCode = null;
+                }
+                else if (string.IsNullOrEmpty(req.content))
+                {
+                    retValue.FailDefalut("请填写回复内容");
+                    status = false;
+                }
+
+                else if (string.IsNullOrEmpty(req.createUserCode))
+                {
+                    retValue.FailDefalut("必填参数创建人编号");
+                    status = false;
+                }
+                else if (string.IsNullOrEmpty(req.createUserName))
+                {
+                    retValue.FailDefalut("必填参数创建人姓名");
+                    status = false;
+                }
+                else
+                {
+                    //判断是否存在
+                    status = db.Queryable<T_ANNEX>()
+                        .Any(s => s.ID == req.docId);
+
+                    retValue.FailDefalut("不存在该doc编号");
+
+                }
+                #endregion
+
+                try
+                {
+                    if (status)
+                    {
+                        //设置创建时间
+                        req.createTime = DateTime.Now;
+                        //事务
+                        try
+                        {
+                            db.BeginTran();//开启事务
+
+                            db.Insert(req);
+
+                            db.CommitTran();//提交事务
+                            retValue.SuccessDefalut("评论成功", 1);
+                        }
+                        catch (Exception ex)
+                        {
+                            db.RollbackTran();//回滚事务
+                            retValue.FailDefalut($"意外错误,错误信息：{ex.Message}");
+                        }
+
+
+                    }
+                }
+                catch (Exception ex)
+                {
+                    retValue.FailDefalut(ex);
+                }
+            }
+
+            return retValue;
+        }
+
+        /// <summary>
+        ///获取当前文章所有评论
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        [HttpGet("GetComments")]
+        public ResGetComments GetComments([FromHeader]ReqGetComments req)
+        {
+            ResGetComments retValue = new ResGetComments();
+            using (var db = DbContext.GetInstance("T_DOC_COMMETS"))
+            {
+                #region 判断必填项
+                bool status = true;
+
+                if (string.IsNullOrEmpty(req.createUserCode))
+                {
+                    retValue.FailDefalut("必填参数修改人编号");
+                    status = false;
+                }
+                else if (string.IsNullOrEmpty(req.createUserName))
+                {
+                    retValue.FailDefalut("必填参数创建人姓名");
+                    status = false;
+                }
+
+                #endregion
+                try
+                {
+                    if (status)
+                    {
+                        var resultList = db.Queryable<DOCCOMMETSBASE>()
+                       .Where(d => d.docId == req.ID)
+                       .JoinTable<T_LIKE>((d, l) => d.ID == l.item_id && l.type == LikeType.Comment.ToString() &&l.create_user_code==req.createUserCode)
+                       .Select<Comments>("d.*,l.item_id as isLike")
+                       .ToList();
+
+                        retValue.SuccessDefalut(resultList, resultList.Count);
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    retValue.FailDefalut(ex);
+                }
+
+            }
+            return retValue;
+        }
+
+
+
+
+        //导出
+
+        //分享部分
+
     }
 }
