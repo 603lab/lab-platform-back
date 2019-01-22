@@ -36,6 +36,13 @@ namespace ZC.Platform.Model
         public int team_id {get;set;}
 
         /// <summary>
+        /// Desc:团队名称 
+        /// Default:- 
+        /// Nullable:False 
+        /// </summary>
+        public string team_name {get;set;}
+
+        /// <summary>
         /// Desc:是否为管理员 
         /// Default:- 
         /// Nullable:False 

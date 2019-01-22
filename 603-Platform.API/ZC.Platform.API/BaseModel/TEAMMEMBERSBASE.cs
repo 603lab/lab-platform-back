@@ -38,6 +38,13 @@ namespace ZC.Platform.API.BaseModel
         public int teamId {get;set;}
 
         /// <summary>
+        /// Desc:团队名称 
+        /// Default:- 
+        /// Nullable:False 
+        /// </summary>
+        public string teamName {get;set;}
+
+        /// <summary>
         /// Desc:是否为管理员 
         /// Default:- 
         /// Nullable:False 

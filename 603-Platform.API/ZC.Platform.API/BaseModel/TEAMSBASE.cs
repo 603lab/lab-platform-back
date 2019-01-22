@@ -28,7 +28,7 @@ namespace ZC.Platform.API.BaseModel
         /// Default:- 
         /// Nullable:False 
         /// </summary>
-        public int teamType {get;set;}
+        public string teamType {get;set;}
 
         /// <summary>
         /// Desc:团队简介 

@@ -71,6 +71,21 @@ namespace MyCommon
         }
 
         /// <summary>
+        /// 是否关注
+        /// </summary>
+        public enum isFollow : int
+        {
+            /// <summary>
+            /// 关注
+            /// </summary>
+            Yes = 1,
+            /// <summary>
+            /// 非取消关注
+            /// </summary>
+            No = 0
+        }
+
+        /// <summary>
         /// 收藏
         /// </summary>
         public enum isCollected : int

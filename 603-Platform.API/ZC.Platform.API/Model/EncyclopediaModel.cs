@@ -211,5 +211,17 @@ namespace ZC.Platform.API.Model
 
         }
         #endregion
+
+        #region Follow
+        public class ReqFollow : FOLLOWUSERSBASE
+        {
+            public int isFollow { get; set; }
+        }
+        public class ResFollow : ResponseModelBase
+        {
+
+        }
+
+        #endregion
     }
 }

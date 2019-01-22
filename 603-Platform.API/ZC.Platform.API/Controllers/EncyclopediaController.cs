@@ -103,22 +103,21 @@ namespace ZC.Platform.API.Controllers
 
                     var resultList = totalList.Skip((req.currentPage - 1) * req.pageSize).Take(req.pageSize).ToList();
 
-                    List<SearchResult> resList = new List<SearchResult>();
-                    foreach (var item in resultList)
+                    var list = resultList.Select(it =>
                     {
-                        SearchResult model = new SearchResult();
-                        ReqToDBGenericClass<ANNEXBASE, SearchResult>.ReqToDBInstance(item, model);
+                        var model = new SearchResult();
+                        ReqToDBGenericClass<ANNEXBASE, SearchResult>.ReqToDBInstance(it, model);
 
                         model.isLike = db.Queryable<T_LIKE>()
-                        .Any(s => s.item_id == item.ID && s.create_user_code == req.createUserCode && s.type == LikeType.Doc.ToString());
+                        .Any(s => s.item_id == s.ID && s.create_user_code == req.createUserCode && s.type == LikeType.Doc.ToString());
 
                         model.isCollected = db.Queryable<T_COLLECTION>()
-                           .Any(s => s.item_id == item.ID && s.create_user_code == req.createUserCode);
+                           .Any(s => s.item_id == s.ID && s.create_user_code == req.createUserCode);
 
-                        resList.Add(model);
-                    }
+                        return model;
+                    }).ToList();
 
-                    retValue.SuccessDefalut(resList, totalList.Count);
+                    retValue.SuccessDefalut(list, totalList.Count);
 
                 }
                 catch (Exception ex)
@@ -752,13 +751,9 @@ namespace ZC.Platform.API.Controllers
             return retValue;
         }
 
-        //聊天部分:
-
-        /*
+        /*聊天部分：
          1.发表评论,回复
          2.获取所有评论
-         3.喜欢,取消喜欢
-
          */
 
         /// <summary>
@@ -928,7 +923,187 @@ namespace ZC.Platform.API.Controllers
             return retValue;
         }
 
+        /// <summary>
+        /// 关注与取消关注
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        [HttpPost("Follow")]
+        public ResFollow Follow([FromBody] ReqFollow req)
+        {
+            ResFollow retValue = new ResFollow();
 
+            using (var db = DbContext.GetInstance("T_FOLLOW_USERS"))
+            {
+                
+                bool status = true;
+                if (string.IsNullOrEmpty(req.createUserCode))
+                {
+                    retValue.FailDefalut("必填参数创建人编号");
+                    status = false;
+                }
+                else if (string.IsNullOrEmpty(req.createUserName))
+                {
+                    retValue.FailDefalut("必填参数创建人姓名");
+                    status = false;
+                }
+                else if (string.IsNullOrEmpty(req.followUserCode))
+                {
+                    retValue.FailDefalut("请填写关注对象编号");
+                    status = false;
+                }
+                else if (string.IsNullOrEmpty(req.followUserName))
+                {
+                    retValue.FailDefalut("请填写关注对象姓名");
+                    status = false;
+                }
+                else if (req.followUserCode==req.createUserCode)
+                {
+                    retValue.FailDefalut("emmm...请不要自己关注自己");
+                    status = false;
+                }
+                else
+                {
+                    status = db.Queryable<T_USERS>().Any(s => s.u_code == req.followUserCode);
+                    retValue.FailDefalut("不存在该关注用户ID");
+                }
+
+                try
+                {
+                    if (status)
+                    {
+                        //设置创建时间
+                        req.createTime = DateTime.Now;
+                        //设置超时时间
+                        db.CommandTimeOut = 30000;
+                        //创建关注记录
+                        if (req.isFollow == (int)isFollow.Yes)
+                        {
+                            //判断是否重复创建点赞
+                            bool isExist = db.Queryable<FOLLOWUSERSBASE>().Any(s => s.followUserCode == req.followUserCode && s.createUserCode == req.createUserCode);
+                            if (isExist)
+                            {
+                                retValue.FailDefalut("您已关注该用户！");
+                            }
+                            else
+                            {
+                                FOLLOWUSERSBASE follow = new FOLLOWUSERSBASE();
+
+                                ReqToDBGenericClass<ReqFollow,FOLLOWUSERSBASE >.ReqToDBInstance(req, follow);
+                                //事务 同步文档点赞数
+
+                                //获取被关注用户数量
+                                var followUser = db.Queryable<T_USERS>().Where(s => s.u_code == req.followUserCode).First();
+                                //当前用户关注数
+                                var my = db.Queryable<T_USERS>().Where(s => s.u_code == req.createUserCode).First();
+
+                                int followedNum = followUser.followed_num + 1;
+                                int followNum = my.follow_num + 1;
+
+                                try
+                                {
+                                    db.BeginTran();//开启事务
+                                    db.Insert(follow);
+                                    //增加关注人的关注数量
+                                    db.Update<T_USERS>(
+                                        new
+                                        {
+                                            followed_num = followedNum
+                                        },
+                                        it => it.u_code == req.followUserCode
+                                        );
+                                    //增加本用户的关注数量
+                                    db.Update<T_USERS>(
+                                       new
+                                       {
+                                           follow_num = followNum
+                                       },
+                                       it => it.u_code == req.createUserCode
+                                       );
+                                    db.CommitTran();//提交事务
+                                    retValue.SuccessDefalut("关注成功!", 1);
+                                }
+                                catch (Exception ex)
+                                {
+                                    db.RollbackTran();//回滚事务
+                                    retValue.FailDefalut("异常错误：" + ex.Message);
+                                }
+
+
+                            }
+                        }
+                        //取消关注
+                        else if (req.isFollow == (int)isFollow.No)
+                        {
+                            //判断是否重复创建点赞
+                            bool isExist = db.Queryable<FOLLOWUSERSBASE>().Any(s => s.followUserCode == req.followUserCode && s.createUserCode == req.createUserCode);
+                            if (!isExist)
+                            {
+                                retValue.FailDefalut("请勿重复取消关注！");
+                            }
+                            else
+                            {
+                                FOLLOWUSERSBASE follow = new FOLLOWUSERSBASE();
+
+                                ReqToDBGenericClass<ReqFollow, FOLLOWUSERSBASE>.ReqToDBInstance(req, follow);
+                                //事务 同步文档点赞数
+
+                                //获取被关注用户数量
+                                var followUser = db.Queryable<T_USERS>().Where(s => s.u_code == req.followUserCode).First();
+                                //当前用户关注数
+                                var my = db.Queryable<T_USERS>().Where(s => s.u_code == req.createUserCode).First();
+
+                                int followedNum = followUser.followed_num - 1;
+                                int followNum = my.follow_num - 1;
+
+                                try
+                                {
+                                    db.BeginTran();//开启事务
+                                    db.Insert(follow);
+                                    //减少关注人的关注数量
+                                    db.Update<T_USERS>(
+                                        new
+                                        {
+                                            followed_num = followedNum
+                                        },
+                                        it => it.u_code == req.followUserCode
+                                        );
+                                    //减少本用户的关注数量
+                                    db.Update<T_USERS>(
+                                       new
+                                       {
+                                           follow_num = followNum
+                                       },
+                                       it => it.u_code == req.createUserCode
+                                       );
+                                    db.CommitTran();//提交事务
+                                    retValue.SuccessDefalut("取消关注成功!", 1);
+                                }
+                                catch (Exception ex)
+                                {
+                                    db.RollbackTran();//回滚事务
+                                    retValue.FailDefalut("异常错误：" + ex.Message);
+                                }
+
+
+                            }
+                        }
+                        else
+                        {
+                            retValue.FailDefalut("非正常关注参数，请修改！");
+                        }
+
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    retValue.FailDefalut(ex);
+                }
+            }
+
+            return retValue;
+        }
 
 
         //导出
