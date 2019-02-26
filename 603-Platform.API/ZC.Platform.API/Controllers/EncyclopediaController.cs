@@ -1168,17 +1168,21 @@ namespace ZC.Platform.API.Controllers
         [HttpPost("Upload")]
         public async Task<IActionResult> Upload(List<IFormFile> files)
         {
+            //本地调试Requset有值 但是服务
             var newFile = Request.Form.Files;
             long size = newFile.Sum(f => f.Length);
             //这里可以用来限制文件大小 这里先不做限制
 
             //在头部获取文件类型
             var newQuery = Request.Headers.Where(it => it.Key == "annexType").FirstOrDefault();
-            var val = newQuery.Value.ToString();
+            var formQuery = Request.Form.Where(it=>it.Key == "annexType").FirstOrDefault();
+            
+            var val = formQuery.Value.ToString();
             //判断传参是否符合规定
             if (!Enum.GetNames(typeof(AnnexType)).Contains(val))
             {
-               return Ok(new { isSuccess = false,Reason="非法文件类型" });
+                //return Ok(new { isSuccess = false,Reason="非法文件类型" });
+                val = "Unkonw";
             }
             //利用AnnexType限制文件类型
 

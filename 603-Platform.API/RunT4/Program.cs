@@ -17,6 +17,8 @@ namespace RunT4
 
         }
 
+        
+
         /// <summary>
         /// 生成T4模板
         /// </summary>
@@ -32,7 +34,7 @@ namespace RunT4
                 string json = GetFileJson(path);
                 //利用json获取连接字符串路径
                 JObject ad = JObject.Parse(json);
-                string ConnectionString = ad["ConnectionStrings"]["DefaultConnection"].ToString();
+                string ConnectionString = ad["ConnectionStrings"]["PekoPekoConnection"].ToString();
 
                 using (var db = new SqlSugarClient(ConnectionString))
                 {
