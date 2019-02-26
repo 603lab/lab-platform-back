@@ -63,7 +63,7 @@ namespace ZC.Platform.API.Controllers
         /// <param name="user"></param>
         /// <returns></returns>
         [HttpPost("AddNotice")]
-        public ResNoticeBase AddNotice([FromBody]ReqNoticeBase notice)
+        public ResNoticeBase AddNotice([FromBody]NOTICEBOARDBASE notice)
         {
             ResNoticeBase retValue = new ResNoticeBase();
             using (var db = DbContext.GetInstance("T_NOTICE_BOARD"))
@@ -77,8 +77,9 @@ namespace ZC.Platform.API.Controllers
                     notice.lastEditUserCode = notice.createUserCode;
                     notice.lastEditUserName = notice.createUserName;
 
-                    db.Insert(notice);
+                    var res = db.Insert(notice);
                     retValue.SuccessDefalut("发布成功", 1);
+                    LogWirter.Record(LogType.Admin, OpType.Add, notice.mainTitle + "]", "添加公告 [", Convert.ToInt32(res), notice.createUserCode, notice.createUserName);
                 }
                 catch (Exception ex)
                 {
@@ -134,6 +135,7 @@ namespace ZC.Platform.API.Controllers
 
 
                         retValue.SuccessDefalut("修改公告成功！", 1);
+                        LogWirter.Record(LogType.Admin, OpType.Update, notice.mainTitle + "]", "修改公告 [", notice.ID, notice.createUserCode, notice.createUserName);
                     }
                     else
                     {
@@ -190,7 +192,7 @@ namespace ZC.Platform.API.Controllers
         /// <param name="task"></param>
         /// <returns></returns>
         [HttpPost("AddTask")]
-        public ResTaskBase AddTask([FromBody]ReqTaskBase task)
+        public ResTaskBase AddTask([FromBody]TASKBASE task)
         {
             ResTaskBase retValue = new ResTaskBase();
             using (var db = DbContext.GetInstance("T_TASK"))
@@ -206,8 +208,9 @@ namespace ZC.Platform.API.Controllers
                     task.lastEditUserCode = task.createUserCode;
                     task.lastEditUserName = task.createUserName;
 
-                    db.Insert(task);
+                    var res = db.Insert(task);
                     retValue.SuccessDefalut("添加任务成功", 1);
+                    LogWirter.Record(LogType.Personal, OpType.Add, task.taskTitle + "]", "创建任务 [", Convert.ToInt32(res), task.createUserCode, task.createUserName);
                 }
                 catch (Exception ex)
                 {
@@ -266,6 +269,7 @@ namespace ZC.Platform.API.Controllers
                             );
 
                         retValue.SuccessDefalut("编辑任务成功", 1);
+                        LogWirter.Record(LogType.Personal, OpType.Update, task.taskTitle + "]", "编辑任务 [", task.ID, task.createUserCode, task.createUserName);
                     }
                     else
                     {
@@ -282,8 +286,72 @@ namespace ZC.Platform.API.Controllers
             return retValue;
         }
 
+        //大佬推荐和文章推荐部分
+        //暂时设定为 (被关注)人气排行前十
+        // 文章推荐为 收藏点赞总数排行前十
 
+        /// <summary>
+        ///大佬推荐 - 前端后端
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        [HttpGet("GetLeaders")]
+        public ResGetLeaders GetLeaders([FromHeader]ReqGetLeaders req)
+        {
+            ResGetLeaders retValue = new ResGetLeaders();
+            using (var db = DbContext.GetInstance("T_USERS"))
+            {
+                try
+                {
+                    //如果有信息被设置为置顶并且根据创建时间降序
+                    var userList = db.Queryable<USERSBASE>()
+                        .Where(s => s.techDirection.Contains(req.leaderType))
+                        .OrderBy(s => s.followedNum, OrderByType.desc)
+                        .ToList();
+                    //分页 0是第一页
+                    var reList = userList.Skip((req.currentPage - 1) * req.pageSize)
+                         .Take(req.pageSize).ToList();
 
+                    retValue.SuccessDefalut(reList, userList.Count);
+
+                }
+                catch (Exception ex)
+                {
+                    retValue.FailDefalut(ex);
+                }
+
+            }
+            return retValue;
+        }
+
+        [HttpGet("GetGoods")]
+        public ResGetGoods GetGoods([FromHeader]ReqGetGoods req)
+        {
+            ResGetGoods retValue = new ResGetGoods();
+            using (var db = DbContext.GetInstance("T_ANNEX"))
+            {
+                try
+                {
+                    //如果有信息被设置为置顶并且根据创建时间降序
+                    var annexList = db.Queryable<ANNEXBASE>()
+                        .Where(s => s.fileTag.Contains(req.articleType))
+                        .OrderBy(s => s.likeNum, OrderByType.desc)
+                        .ToList();
+                    //分页 0是第一页
+                    var reList = annexList.Skip((req.currentPage - 1) * req.pageSize)
+                         .Take(req.pageSize).ToList();
+
+                    retValue.SuccessDefalut(reList, annexList.Count);
+
+                }
+                catch (Exception ex)
+                {
+                    retValue.FailDefalut(ex);
+                }
+
+            }
+            return retValue;
+        }
 
     }
 }

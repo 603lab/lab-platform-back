@@ -44,7 +44,7 @@ namespace MyCommon
         {
             statusCode = -100;
             isSuccess = false;
-            Message = $"返回失败失败,错误信息:{ex.Message}";
+            Message = $"返回失败,错误信息:{ex.Message}";
             Count = 0;
         }
         public void FailDefalut()

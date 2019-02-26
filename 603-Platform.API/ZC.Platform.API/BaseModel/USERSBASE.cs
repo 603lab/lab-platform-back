@@ -70,7 +70,7 @@ namespace ZC.Platform.API.BaseModel
         /// Default:- 
         /// Nullable:True 
         /// </summary>
-        public string headImg {get;set;}
+        public string avatar {get;set;}
 
         /// <summary>
         /// Desc:班级名称 

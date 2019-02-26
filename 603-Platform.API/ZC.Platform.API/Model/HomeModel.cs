@@ -43,9 +43,35 @@ namespace ZC.Platform.API.Model
 
         }
 
+        #region 获取推荐大佬
+        public class ReqGetLeaders
+        {
+            public string leaderType { get; set; }
+            public int currentPage { get; set; }
+            public int pageSize { get; set; }
+        }
 
+        public class ResGetLeaders : ResponseModelBase<List<USERSBASE>>
+        {
 
+        }
 
+        #endregion
+
+        #region 获取推荐文章
+
+        public class ReqGetGoods
+        {
+            public string articleType { get; set; }
+            public int currentPage { get; set; }
+            public int pageSize { get; set; }
+        }
+
+        public class ResGetGoods : ResponseModelBase<List<ANNEXBASE>>
+        {
+
+        }
+        #endregion
 
     }
 }

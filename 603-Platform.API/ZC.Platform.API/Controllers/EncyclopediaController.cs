@@ -66,41 +66,64 @@ namespace ZC.Platform.API.Controllers
                         annexList.Where(it => it.createUserName.Contains(req.authorName));
                     }
                     //点赞数
-                    if (req.likeNum.min != null)
+                    if (req.likeMin != null)
                     {
-                        annexList.Where(it => it.likeNum > req.likeNum.min);
+                        annexList.Where(it => it.likeNum >=req.likeMin);
                     }
-                    if (req.likeNum.max != null)
+                    if (req.likeMax != null)
                     {
-                        annexList.Where(it => it.likeNum < req.likeNum.max);
+                        annexList.Where(it => it.likeNum <= req.likeMax);
                     }
                     //标签
-                    if (req.taps != null)
+                    if (req.tags != null)
                     {
-                        annexList.In("tap", req.taps);
+
+                        
+                        //annexList.Where(it => it.fileTag.Contains(req.tags[0]) || it.fileTag.Contains(req.tags[1]));
+                        string sql = "( (file_tag  LIKE \"%" + req.tags[0] + "%\") ";
+                        int i = 0;
+                        foreach (var item in req.tags)
+                        {
+                            if (i == 0)
+                            {
+
+                            }
+                            else
+                            {
+                                sql += "OR  (file_tag  LIKE \"%" + item + "%\" ) ";
+                            }
+                            i++;
+                        }
+                        sql += ")";
+                        annexList.Where(sql);
+                       
+
                     }
 
                     //作者关注数
-                    if (req.followNum.min != null || req.followNum.max != null)
+                    if (req.followMin != null || req.followMax != null)
                     {
-                        //annexList.JoinTable<T_USERS>((it, it2) => it.createUserCode == it2.u_code)
-                        //    .Where<T_USERS>((it, it2) => it2.followed_num >= req.followNum.min);
+                        
 
-                        annexList.Where<ANNEXBASE, T_USERS>((it, it2) => it.createUserCode.Equals(it2.u_code));
-                        if (req.followNum.min != null)
+                        //annexList.Where<ANNEXBASE, T_USERS>((it, it2) => it.createUserCode.Equals(it2.u_code));
+                        if (req.followMin != null)
                         {
-                            annexList.Where<T_USERS>((it, it2) => it2.followed_num >= req.followNum.min);
+                            /*annexList.Where<T_USERS>((it, it2) => it2.followed_num >= req.followMin);*/
+                            annexList.JoinTable<T_USERS>((it, it2) => it.createUserCode == it2.u_code)
+                            .Where<T_USERS>((it, it2) => it2.followed_num >= req.followMin);
                         }
 
-                        if (req.followNum.max != null)
+                        if (req.followMax != null)
                         {
-                            annexList.Where<T_USERS>((it, it2) => it2.followed_num <= req.followNum.max);
+                            //annexList.Where<T_USERS>((it, it2) => it2.followed_num <= req.followMax);
+                            annexList.JoinTable<T_USERS>((it, it2) => it.createUserCode == it2.u_code)
+                          .Where<T_USERS>((it, it2) => it2.followed_num <= req.followMin);
                         }
                     }
                     //在取分页总数的时候节省性能
 
                     var totalList = annexList.ToList();
-
+                    var finalSQL = annexList.ToSql();
                     var resultList = totalList.Skip((req.currentPage - 1) * req.pageSize).Take(req.pageSize).ToList();
 
                     var list = resultList.Select(it =>
@@ -203,13 +226,14 @@ namespace ZC.Platform.API.Controllers
                             detail.detail = json;
                             detail.relation_code = id.ObjToInt();
                             detail.type = JsonDetailType.Add.ToString();
-                            db.Insert(detail);
+                            var res = db.Insert(detail);
 
                             #endregion
 
 
                             db.CommitTran();//提交事务
                             retValue.SuccessDefalut("创建成功", 1);
+                            LogWirter.Record(LogType.Doc, OpType.Add, req.fileName+"]", "创建文章 [", Convert.ToInt32(req.createUserCode), req.createUserCode, req.createUserName);
                         }
                         catch (Exception ex)
                         {
@@ -304,6 +328,7 @@ namespace ZC.Platform.API.Controllers
                                         );
                                     db.CommitTran();//提交事务
                                     retValue.SuccessDefalut("点赞成功!", 1);
+                                    LogWirter.Record(LogType.Personal, OpType.Add, annex.file_name+"]", "点赞了 [", Convert.ToInt32(annex.create_user_code), req.createUserCode, req.createUserName);
                                 }
                                 catch (Exception ex)
                                 {
@@ -333,6 +358,7 @@ namespace ZC.Platform.API.Controllers
                                     );
                                 db.CommitTran();//提交事务
                                 retValue.SuccessDefalut("取消点赞成功！", 1);
+                                LogWirter.Record(LogType.Personal, OpType.Delete, annex.file_name + "]", "取消点赞了 [", Convert.ToInt32(annex.create_user_code), req.createUserCode, req.createUserName);
                             }
                             catch (Exception ex)
                             {
@@ -400,7 +426,7 @@ namespace ZC.Platform.API.Controllers
                             bool isExist = db.Queryable<COLLECTIONBASE>().Any(s => s.itemId == req.itemId && s.createUserCode == req.createUserCode);
                             if (isExist)
                             {
-                                retValue.FailDefalut("改文档已经被收藏！");
+                                retValue.FailDefalut("该文档已经被收藏！");
                             }
                             else
                             {
@@ -425,6 +451,7 @@ namespace ZC.Platform.API.Controllers
                                         );
                                     db.CommitTran();//提交事务
                                     retValue.SuccessDefalut("收藏成功!", 1);
+                                    LogWirter.Record(LogType.Personal, OpType.Add, annex.file_name + "]", "收藏了 [", Convert.ToInt32(annex.create_user_code), req.createUserCode, req.createUserName);
                                 }
                                 catch (Exception ex)
                                 {
@@ -455,6 +482,7 @@ namespace ZC.Platform.API.Controllers
                                     );
                                 db.CommitTran();//提交事务
                                 retValue.SuccessDefalut("取消收藏成功!", 1);
+                                LogWirter.Record(LogType.Personal, OpType.Delete, annex.file_name + "]", "取消了 [", Convert.ToInt32(annex.create_user_code), req.createUserCode, req.createUserName);
                             }
                             catch (Exception ex)
                             {
@@ -536,7 +564,16 @@ namespace ZC.Platform.API.Controllers
                     retValue.FailDefalut("请填写Doc编号");
                     status = false;
                 }
-
+                if (string.IsNullOrEmpty(req.createUserCode))
+                {
+                    retValue.FailDefalut("请填写用户编号");
+                    status = false;
+                }
+                if (string.IsNullOrEmpty(req.createUserName))
+                {
+                    retValue.FailDefalut("请填写用户姓名");
+                    status = false;
+                }
                 #endregion
                 try
                 {
@@ -555,6 +592,7 @@ namespace ZC.Platform.API.Controllers
                         it => it.ID == req.ID
                            );
                             retValue.SuccessDefalut("增加浏览数成功", 1);
+                            LogWirter.Record(LogType.Doc, OpType.Add, annex.fileName + "]", "查看了 [", Convert.ToInt32(annex.createUserCode), req.createUserCode, req.createUserName);
                         }
                         else
                         {
@@ -611,7 +649,7 @@ namespace ZC.Platform.API.Controllers
                         try
                         {
                             db.BeginTran();
-
+                            var annex = db.Queryable<ANNEXBASE>().Where(s => s.ID == req.ID).FirstOrDefault();
                             db.Update<ANNEXBASE>(
                                 new
                                 {
@@ -639,6 +677,7 @@ namespace ZC.Platform.API.Controllers
 
                             db.CommitTran();//提交事务
                             retValue.SuccessDefalut("更新成功", 1);
+                            LogWirter.Record(LogType.Doc, OpType.Update, annex.fileName + "]", "编辑了 [", Convert.ToInt32(annex.createUserCode), req.createUserCode, req.createUserName);
                         }
                         catch (Exception ex)
                         {
@@ -702,7 +741,7 @@ namespace ZC.Platform.API.Controllers
 
                 #region 判断必填项
                 bool status = true;
-
+                var annex = db.Queryable<ANNEXBASE>().Where(s => s.ID == req.ID).FirstOrDefault();
                 if (string.IsNullOrEmpty(req.createUserCode))
                 {
                     retValue.FailDefalut("必填参数修改人编号");
@@ -713,7 +752,11 @@ namespace ZC.Platform.API.Controllers
                     retValue.FailDefalut("必填参数创建人姓名");
                     status = false;
                 }
-
+                else if (annex==null)
+                {
+                    retValue.FailDefalut("不存在当前ID的文件");
+                    status = false;
+                }
                 #endregion
 
                 try
@@ -726,13 +769,14 @@ namespace ZC.Platform.API.Controllers
                         try
                         {
                             db.BeginTran();
-
+                            
                             db.Delete<ANNEXBASE>(s => s.ID == req.ID);
 
                             //这里需要加入删除的日志
 
                             db.CommitTran();//提交事务
                             retValue.SuccessDefalut("删除成功", 1);
+                            LogWirter.Record(LogType.Doc, OpType.Delete, annex.fileName + "]", "删除 [", Convert.ToInt32(annex.createUserCode), req.createUserCode, req.createUserName);
                         }
                         catch (Exception ex)
                         {
@@ -850,11 +894,19 @@ namespace ZC.Platform.API.Controllers
                         try
                         {
                             db.BeginTran();//开启事务
-
+                            var annex = db.Queryable<ANNEXBASE>().Where(s => s.ID == req.docId).FirstOrDefault();
                             db.Insert(req);
 
                             db.CommitTran();//提交事务
                             retValue.SuccessDefalut("评论成功", 1);
+                            if (req.isReply == 0)
+                            {
+                                LogWirter.Record(LogType.Doc, OpType.Delete, annex.fileName + "]", "评论 [", Convert.ToInt32(annex.createUserCode), req.createUserCode, req.createUserName);
+                            }
+                            else
+                            {
+                                LogWirter.Record(LogType.Doc, OpType.Delete, annex.fileName + "]", "回复 [", Convert.ToInt32(annex.createUserCode), req.createUserCode, req.createUserName);
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -1022,6 +1074,7 @@ namespace ZC.Platform.API.Controllers
                                        );
                                     db.CommitTran();//提交事务
                                     retValue.SuccessDefalut("关注成功!", 1);
+                                    LogWirter.Record(LogType.Personal, OpType.Add, "了你", "关注", Convert.ToInt32(followUser.u_code), req.createUserCode, req.createUserName);
                                 }
                                 catch (Exception ex)
                                 {
@@ -1104,6 +1157,7 @@ namespace ZC.Platform.API.Controllers
 
             return retValue;
         }
+
 
 
         //导出

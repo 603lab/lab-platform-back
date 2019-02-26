@@ -38,7 +38,7 @@ namespace ZC.Platform.API
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
-            DbContext.ConnectionString = Configuration.GetConnectionString("DefaultConnection");
+            DbContext.ConnectionString = Configuration.GetConnectionString("PekoPekoConnection");
            
         }
 

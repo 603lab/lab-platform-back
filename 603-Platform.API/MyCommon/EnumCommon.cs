@@ -131,5 +131,84 @@ namespace MyCommon
             Comment
         }
 
+        /// <summary>
+        /// 日志记录类型
+        /// </summary>
+        public enum LogType
+        {
+            /// <summary>
+            /// 登录信息
+            /// </summary>
+            Login,
+            /// <summary>
+            /// 百科系统
+            /// </summary>
+            Doc,
+            /// <summary>
+            /// 项目相关
+            /// </summary>
+            Project,
+            /// <summary>
+            /// 管理员
+            /// </summary>
+            Admin,
+            /// <summary>
+            /// 个人
+            /// </summary>
+            Personal
+        }
+
+        /// <summary>
+        /// 操作类型
+        /// </summary>
+        public enum OpType
+        {
+            /// <summary>
+            /// 登录
+            /// </summary>
+            Login,
+            /// <summary>
+            /// 登出
+            /// </summary>
+            Out,
+            /// <summary>
+            /// 新建
+            /// </summary>
+            Add,
+            /// <summary>
+            /// 删除
+            /// </summary>
+            Delete,
+            /// <summary>
+            /// 编辑
+            /// </summary>
+            Update
+
+
+
+            
+        }
+
+        public enum ActiveType
+        {
+
+            /// <summary>
+            /// 百科动态
+            /// </summary>
+            Doc,
+            /// <summary>
+            /// 项目动态
+            /// </summary>
+            Project,
+            /// <summary>
+            /// 论坛动态
+            /// </summary>
+            Forum,
+            /// <summary>
+            /// 关注动态
+            /// </summary>
+            Follow
+
+        }
     }
 }

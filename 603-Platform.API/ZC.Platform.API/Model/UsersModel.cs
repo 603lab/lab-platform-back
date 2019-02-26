@@ -120,6 +120,7 @@ namespace ZC.Platform.API.Model
 
         }
         #endregion
+        
         #region GetMyDocs
 
         /// <summary>
@@ -146,6 +147,58 @@ namespace ZC.Platform.API.Model
         }
 
         public class ResGetMyDocs : ResponseModelBase<List<ANNEXBASE>>
+        {
+
+        }
+        #endregion
+
+        #region GetDocActive
+
+        /// <summary>
+        /// 返回类
+        /// </summary>
+        public class ReqGetDocActive
+        {
+            public string activeType { get; set; }
+            public string uCode { get; set; }
+        }
+
+        public class ResGetDocActive : ResponseModelBase<List<LOGBASE>>
+        {
+
+        }
+        #endregion
+
+        #region 个人标签部分
+
+        public class ResAddUserTag : ResponseModelBase
+        {
+
+        }
+
+        public class ResUserTags : ResponseModelBase<List<USERTAGSBASE>>
+        {
+
+        }
+
+        #endregion
+
+        #region 更新圆饼图
+
+       
+        public class ReqUpdateForm 
+        {
+            public List<USERSKILLBASE> skillList { get; set; }
+            public string createUserCode { get; set; }
+            public string createUserName{ get; set; }
+        }
+
+        public class ResUpdateForm:ResponseModelBase
+        {
+                
+        }
+
+        public class ResSkills: ResponseModelBase<List<USERSKILLBASE>>
         {
 
         }

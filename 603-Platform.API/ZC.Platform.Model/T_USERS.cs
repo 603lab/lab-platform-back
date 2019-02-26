@@ -68,7 +68,7 @@ namespace ZC.Platform.Model
         /// Default:- 
         /// Nullable:True 
         /// </summary>
-        public string head_img {get;set;}
+        public string avatar {get;set;}
 
         /// <summary>
         /// Desc:班级名称 

@@ -1,7 +1,10 @@
-﻿using Newtonsoft.Json;
+﻿using MySugar;
+using MySqlSugar;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using static MyCommon.EnumCommon;
 
 namespace MyCommon
 {
@@ -15,5 +18,6 @@ namespace MyCommon
             details += "Res:Json" + JsonConvert.SerializeObject(Res);
             return details;
         }
+
     }
 }

@@ -40,7 +40,7 @@ namespace ZC.Platform.API.Model
             /// <summary>
             /// 标签
             /// </summary>
-            public List<string> taps { get; set; }
+            public List<string> tags { get; set; }
 
             /// <summary>
             /// 作者名称
@@ -50,12 +50,14 @@ namespace ZC.Platform.API.Model
             /// <summary>
             /// 文章点赞数
             /// </summary>
-            public likeRange likeNum { get; set; }
+            public int? likeMax { get; set; }
+            public int? likeMin { get; set; }
 
             /// <summary>
             /// 作者关注数
             /// </summary>
-            public followRange followNum { get; set; }
+            public int? followMax { get; set; }
+            public int? followMin { get; set; }
 
             public int currentPage { get; set; }
             public int pageSize { get; set; }
