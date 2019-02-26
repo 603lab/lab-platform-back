@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <Folder Include="logfile\" />
+    <Folder Include="Annex\" />
     <Folder Include="wwwroot\" />
   </ItemGroup>
 

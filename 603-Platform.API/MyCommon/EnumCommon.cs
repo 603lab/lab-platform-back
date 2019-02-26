@@ -210,5 +210,22 @@ namespace MyCommon
             Follow
 
         }
+
+        public enum AnnexType
+        {
+            /// <summary>
+            /// 头像文件
+            /// </summary>
+            Avatar,
+            /// <summary>
+            /// pdf文件
+            /// </summary>
+            PDF,
+            /// <summary>
+            /// 文档
+            /// </summary>
+            Doc
+
+        }
     }
 }

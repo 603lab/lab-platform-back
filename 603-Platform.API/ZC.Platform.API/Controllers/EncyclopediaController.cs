@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -1159,6 +1160,74 @@ namespace ZC.Platform.API.Controllers
         }
 
 
+        /// <summary>
+        /// 上传文件
+        /// </summary>
+        /// <param name="files"></param>
+        /// <returns></returns>
+        [HttpPost("Upload")]
+        public async Task<IActionResult> Upload(List<IFormFile> files)
+        {
+            var newFile = Request.Form.Files;
+            long size = newFile.Sum(f => f.Length);
+            //这里可以用来限制文件大小 这里先不做限制
+
+            //在头部获取文件类型
+            var newQuery = Request.Headers.Where(it => it.Key == "annexType").FirstOrDefault();
+            var val = newQuery.Value.ToString();
+            //判断传参是否符合规定
+            if (!Enum.GetNames(typeof(AnnexType)).Contains(val))
+            {
+               return Ok(new { isSuccess = false,Reason="非法文件类型" });
+            }
+            //利用AnnexType限制文件类型
+
+
+            #region 创建路径
+
+            string webRootPath = "/Annex/"+ val + "/" + DateTime.Now.ToString("yyyyMMdd")
+                + "/";
+            //当前路径为 C:\Users\luren\Desktop\603\lab-platform-back\603-Platform.API\ZC.Platform.API\bin\Debug\netcoreapp2.0\
+            string baseDirectory = System.AppDomain.CurrentDomain.BaseDirectory;
+            int index = baseDirectory.LastIndexOf('I');
+            string downloadPath = baseDirectory.Substring(0, index + 1) + webRootPath;
+            //存储相对路径
+            string resPath = string.Empty;
+
+            #endregion
+
+
+            foreach (var formFile in newFile)
+            {
+                if (formFile.Length > 0)
+                {
+                    if (!Directory.Exists(downloadPath))
+                    {
+                        Directory.CreateDirectory(downloadPath);
+                    }
+                    string fileExt = Path.GetExtension(formFile.FileName); //文件扩展名，含有“.”
+                    long fileSize = formFile.Length; //获得文件大小，以字节为单位
+                    string newFileName = System.Guid.NewGuid().ToString() + fileExt; //随机生成新的文件名
+                    var filePath = downloadPath + newFileName;
+                    try
+                    {
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await formFile.CopyToAsync(stream);
+                        }
+                        resPath = webRootPath + newFileName;
+                    }
+                    catch (Exception ex)
+                    {
+
+                        return Ok(new { isSuccess = false, Reason = ex.Message });
+                    }
+                   
+                    
+                }
+            }
+            return Ok(new { isSuccess = true, path = resPath });
+        }
 
         //导出
 
