@@ -19,7 +19,7 @@ namespace MyCommon
         /// <summary>
         /// 信息
         /// </summary>
-        public string Message { get; set; } = "调用成功！";
+        public string msg { get; set; } = "调用成功！";
 
         /// <summary>
         /// 状态码
@@ -30,35 +30,35 @@ namespace MyCommon
         {
             statusCode = 200;
             isSuccess = true;
-            Message = "调用成功!";
+            msg = "调用成功!";
             Count = totalCount;
         }
         public void SuccessDefalut(string message, int totalCount)
         {
             statusCode = 200;
             isSuccess = true;
-            Message = message;
+            msg = message;
             Count = totalCount;
         }
         public void FailDefalut(Exception ex)
         {
             statusCode = -100;
             isSuccess = false;
-            Message = $"返回失败,错误信息:{ex.Message}";
+            msg = $"返回失败,错误信息:{ex.Message}";
             Count = 0;
         }
         public void FailDefalut()
         {
             statusCode = -100;
             isSuccess = false;
-            Message = $"不存在改信息";
+            msg = $"不存在改信息";
             Count = 0;
         }
         public void FailDefalut(string message)
         {
             statusCode = -100;
             isSuccess = false;
-            Message = message;
+            msg = message;
             Count = 0;
         }
     }
@@ -83,7 +83,7 @@ namespace MyCommon
         /// <summary>
         /// 信息
         /// </summary>
-        public string Message { get; set; } = "调用成功！";
+        public string msg { get; set; } = "调用成功！";
         /// <summary>
         /// 状态码
         /// </summary>
@@ -101,7 +101,7 @@ namespace MyCommon
         {
             statusCode = 200;
             isSuccess = true;
-            Message = "返回成功";
+            msg = "返回成功";
             Count = totalCount;
             Data = TData;
         }
@@ -118,14 +118,14 @@ namespace MyCommon
             {
                 statusCode = 200;
                 isSuccess = true;
-                Message = "返回成功";
+                msg = "返回成功";
                 Count = totalCount;
             }
             else
             {
                 statusCode = -100;
                 isSuccess = false;
-                Message = isNullReason;
+                msg = isNullReason;
                 Count = 0;
             }
             Data = TData;
@@ -141,14 +141,14 @@ namespace MyCommon
             isSuccess = false;
             //不一定是0
             Count = 0;
-            Message = ex.Message;
+            msg = ex.Message;
 
         }
         public virtual void FailDefalut(string error)
         {
             statusCode = -100;
             isSuccess = false;
-            Message = error;
+            msg = error;
             Count = 0;
         }
     }
