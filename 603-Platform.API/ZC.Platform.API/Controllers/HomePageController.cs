@@ -9,9 +9,11 @@ using static ZC.Platform.API.Model.HomeModel;
 using static MyCommon.EnumCommon;
 using static MyCommon.UpdateCommon;
 using ZC.Platform.API.BaseModel;
+using Microsoft.AspNetCore.Cors;
 
 namespace ZC.Platform.API.Controllers
 {
+    [EnableCors("any")]
     [Route("Base-Module/Home")]
     public class HomePageController : Controller
     {

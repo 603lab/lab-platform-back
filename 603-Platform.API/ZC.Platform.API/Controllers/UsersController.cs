@@ -16,9 +16,11 @@ using static ZC.Platform.API.Model.UsersModel;
 using ZC.Platform.API.BaseModel;
 using static MyCommon.UpdateCommon;
 using static MyCommon.EnumCommon;
+using Microsoft.AspNetCore.Cors;
 
 namespace ZC.Platform.API.Controllers
 {
+    [EnableCors("any")]
     [Route("Base-Module/Users")]
     public class UsersController : Controller
     {

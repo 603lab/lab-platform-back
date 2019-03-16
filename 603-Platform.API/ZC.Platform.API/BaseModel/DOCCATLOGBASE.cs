@@ -35,7 +35,7 @@ namespace ZC.Platform.API.BaseModel
         /// Default:- 
         /// Nullable:True 
         /// </summary>
-        public string parentCode {get;set;}
+        public int? parentCode {get;set;}
 
         /// <summary>
         /// Desc:是否为菜单 

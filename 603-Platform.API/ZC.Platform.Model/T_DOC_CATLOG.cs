@@ -33,7 +33,7 @@ namespace ZC.Platform.Model
         /// Default:- 
         /// Nullable:True 
         /// </summary>
-        public string parent_code {get;set;}
+        public int? parent_code {get;set;}
 
         /// <summary>
         /// Desc:是否为菜单 

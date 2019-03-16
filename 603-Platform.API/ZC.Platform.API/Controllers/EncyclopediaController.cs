@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MySqlSugar;
@@ -16,11 +17,12 @@ using static ZC.Platform.API.Model.EncyclopediaModel;
 
 namespace ZC.Platform.API.Controllers
 {
+    [EnableCors("any")]
     [Route("Base-Module/Encyclopedia")]
     public class EncyclopediaController : Controller
     {
         /// <summary>
-        ///获取百科基本菜单
+        ///获取百科基本菜单(这里需要后端把报文排序好传给前端所以还是直接String类型吧)
         /// </summary>
         /// <param name="user"></param>
         /// <returns></returns>
@@ -32,10 +34,34 @@ namespace ZC.Platform.API.Controllers
             {
                 try
                 {
-                    var resultList = db.Queryable<DOCCATLOGBASE>()
+                    List<DocMenu> docMenu = new List<DocMenu>();
+                    //查出所有放在第一层
+                    var menuList = db.Queryable<DOCCATLOGBASE>()
                         .ToList();
+                    //查找出第一层
+                    var resultList = menuList.Where(s=>s.parentCode==null)
+                        .ToList();
+                    foreach (var item in resultList)
+                    {
+                        List<DocMenu> docMenuList = new List<DocMenu>();
+                        DocMenu menu = new DocMenu();
+                        ReqToDBGenericClass<DOCCATLOGBASE, DocMenu>.ReqToDBInstance(item, menu);
+                        //找出子集列表
+                        var childrenList = menuList.Where(s => s.parentCode == item.ID).ToList();
+                        if (childrenList.Count > 0)
+                        {
+                            menu.childrenList = GetChildren(menuList, childrenList);
+                        }
+                         else
+                         {
+                            menu.childrenList = new List<DocMenu>();
+                         }
+                       
+                        docMenu.Add(menu);
+                    }
+                        
 
-                    retValue.SuccessDefalut(resultList, resultList.Count);
+                    retValue.SuccessDefalut(docMenu, resultList.Count);
 
                 }
                 catch (Exception ex)
@@ -1236,6 +1262,43 @@ namespace ZC.Platform.API.Controllers
         //导出
 
         //分享部分
+
+
+        #region 私有类
+
+        /// <summary>
+        /// 递归寻找子类
+        /// </summary>
+        /// <param name="menuList"></param>
+        /// <param name="childrenList"></param>
+        /// <returns></returns>
+        public List<DocMenu> GetChildren(List<DOCCATLOGBASE> menuList, List<DOCCATLOGBASE> childrenList)
+        {
+            List<DocMenu> docMenuList = new List<DocMenu>();
+            using (var db = DbContext.GetInstance("T_DOC_CATLOG"))
+            {
+                foreach (var child in childrenList)
+                {
+                    DocMenu childMenu = new DocMenu();
+                    ReqToDBGenericClass<DOCCATLOGBASE, DocMenu>.ReqToDBInstance(child, childMenu);
+                    var newChildrenList = menuList.Where(s => s.parentCode == child.ID).ToList();
+                    if (newChildrenList.Count > 0)
+                    {
+                        childMenu.childrenList = GetChildren(menuList, newChildrenList);
+                    }
+                    else
+                    {
+                        childMenu.childrenList = new List<DocMenu>();
+                    }
+
+                    docMenuList.Add(childMenu);
+                    //找出child
+                }
+
+            }
+            return docMenuList;
+        }
+        #endregion
 
     }
 }

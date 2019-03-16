@@ -13,11 +13,19 @@ namespace ZC.Platform.API.Model
 
         #region GetMenu
 
+        public class DocMenu: DOCCATLOGBASE
+        {
+            /// <summary>
+            /// 菜单是否拥有子集
+            /// </summary>
+            public List<DocMenu> childrenList { get; set; }
+        }
+
         public class ReqGetMenu : DOCCATLOGBASE
         {
 
         }
-        public class ResGetMenu : ResponseModelBase<List<DOCCATLOGBASE>>
+        public class ResGetMenu : ResponseModelBase<List<DocMenu>>
         {
 
         }
