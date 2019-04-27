@@ -81,8 +81,10 @@ namespace ZC.Platform.API.Controllers
                         .Where(s => s.username == user.username)
                         .Where(s => s.password == user.password)
                         .FirstOrDefault();
-
-                    retValue.SuccessDefalut(userInfo, 1, "账号或者密码错误");
+                    My my = new My();
+                    ReqToDBGenericClass<USERSBASE, My>.ReqToDBInstance(userInfo, my);
+                    my.techList = JsonConvert.DeserializeObject<List<string>>(my.techDirection);
+                    retValue.SuccessDefalut(my, 1, "账号或者密码错误");
 
                     //记录登录日志
                     if (userInfo != null)
@@ -105,9 +107,9 @@ namespace ZC.Platform.API.Controllers
         /// <param name="user"></param>
         /// <returns></returns>
         [HttpPost("PhoneLogin")]
-        public ResLogin PhoneLogin([FromBody]ReqUsersBase user)
+        public ResPhoneLogin PhoneLogin([FromBody]ReqUsersBase user)
         {
-            ResLogin retValue = new ResLogin();
+            ResPhoneLogin retValue = new ResPhoneLogin();
             using (var db = DbContext.GetInstance("T_USERS"))
             {
                 try
@@ -141,10 +143,10 @@ namespace ZC.Platform.API.Controllers
                 try
                 {
                     //设置禁止更新列
-                    db.AddDisableUpdateColumns("username", "password","is_admin");
+                    db.AddDisableUpdateColumns("username", "password","is_admin","follow_num","followed_num","ID","scores","u_code","create_time");
 
                     bool isIDExist = db.Queryable<USERSBASE>()
-                        .Any(s => s.ID == user.ID);
+                        .Any(s => s.uCode == user.uCode);
                     if (isIDExist)
                     {
                         #region 验证必填信息及其格式
@@ -175,9 +177,18 @@ namespace ZC.Platform.API.Controllers
                         #endregion
                         if (status)
                         {
-                            db.Update(user);
-                            retValue.SuccessDefalut("更新成功！", 1);
-                            LogWirter.Record(LogType.Login, OpType.Update, "信息", "首次登录，编辑", Convert.ToInt32(user.uCode), user.createUserCode, user.createUserName);
+                            
+                            user.techDirection = JsonConvert.SerializeObject(user.techList);
+                            var newUser = db.Queryable<USERSBASE>().Where(s => s.uCode == user.uCode).FirstOrDefault();
+                            if (newUser != null)
+                            {
+                                user.ID = newUser.ID;
+                                ReqToDBGenericClass<ReqUsersBase, USERSBASE>.ReqToDBInstance(user, newUser);
+                                db.Update(newUser);
+                                retValue.SuccessDefalut("更新成功！", 1);
+                                LogWirter.Record(LogType.Login, OpType.Update, "信息", "首次登录，编辑", Convert.ToInt32(user.uCode), user.createUserCode, user.createUserName);
+                            }
+                            
                         }
                         
                     }
@@ -206,37 +217,73 @@ namespace ZC.Platform.API.Controllers
             ResUsersBase retValue = new ResUsersBase();
             using (var db = DbContext.GetInstance("T_USERS"))
             {
-                try
+                bool status = true;
+                if (string.IsNullOrEmpty(user.phoneNum))
                 {
-                    //设置禁止更新列
-                    db.AddDisableUpdateColumns("username", "is_admin");
-
-                    var isExist = db.Queryable<USERSBASE>()
-                        .Any(s => s.phoneNum == user.phoneNum);
-                    if (isExist)
-                    {
-                        #region 验证必填信息及其格式
-
-                        if (string.IsNullOrEmpty(user. password))
-                        {
-                            retValue.FailDefalut("请填写你的新密码！");
-                        }
-
-                        #endregion
-                        db.Update<USERSBASE>(new { password = user.password }, it => it.phoneNum == user.phoneNum); //只更新密码列
-                        
-                        retValue.SuccessDefalut("更新成功！", 1);
-                        var info = db.Queryable<USERSBASE>().Where(s => s.phoneNum == user.phoneNum).FirstOrDefault();
-                        LogWirter.Record(LogType.Login, OpType.Update, "手机号码", "通过手机号更新密码", Convert.ToInt32(info.uCode), info.createUserCode, info.createUserName);
-                    }
-                    else
-                    {
-                        retValue.FailDefalut("不存在该用户手机号");
-                    }
+                    retValue.FailDefalut("请填写你的手机号");
+                    status = false;
                 }
-                catch (Exception ex)
+                else if (string.IsNullOrEmpty(user.uCode))
                 {
-                    retValue.FailDefalut(ex);
+                    retValue.FailDefalut("填写你的学号");
+                    status = false;
+                }
+                else if (string.IsNullOrEmpty(user.idCard))
+                {
+                    retValue.FailDefalut("请填写你的身份证号码");
+                    status = false;
+                }
+                if (status)
+                {
+                    try
+                    {
+                        //设置禁止更新列
+                        db.AddDisableUpdateColumns("username", "is_admin");
+
+                        var isExist = db.Queryable<USERSBASE>()
+                            .Any(s => s.uCode == user.uCode);
+                        if (isExist)
+                        {
+                            #region 验证必填信息及其格式
+
+                            if (string.IsNullOrEmpty(user.password))
+                            {
+                                retValue.FailDefalut("请填写你的新密码！");
+                            }
+
+                            #endregion
+
+                            var student = db.Queryable<USERSBASE>().Where(u => u.uCode == user.uCode).FirstOrDefault();
+                            if (student != null)
+                            {
+                                if (student.idCard != user.idCard || student.phoneNum != user.phoneNum)
+                                {
+                                    retValue.FailDefalut("手机号或者身份证与学号不对应");
+                                }
+                                else
+                                {
+                                    db.Update<USERSBASE>(new { password = user.password }, it => it.phoneNum == user.phoneNum); //只更新密码列
+
+                                    retValue.SuccessDefalut("更新成功！", 1);
+                                    var info = db.Queryable<USERSBASE>().Where(s => s.phoneNum == user.phoneNum).FirstOrDefault();
+                                    LogWirter.Record(LogType.Login, OpType.Update, "手机号码", "通过手机号更新密码", Convert.ToInt32(info.uCode), info.createUserCode, info.createUserName);
+                                }
+                            }
+                            else
+                            {
+                                retValue.FailDefalut("不存在该学号");
+                            }
+                           
+                        }
+                        else
+                        {
+                            retValue.FailDefalut("不存在该用户手机号");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        retValue.FailDefalut(ex);
+                    }
                 }
 
             }
@@ -495,8 +542,24 @@ namespace ZC.Platform.API.Controllers
                         }
                         int pageNum = 0;
                         var resList = list.OrderBy(s => s.createTime, OrderByType.desc).ToPageList(req.currentPage,req.pageSize, ref pageNum);
-
-                        retValue.SuccessDefalut(resList, pageNum);
+                        List<newAnnexBase> newRes = new List<newAnnexBase>();
+                        string avatar = string.Empty;
+                        var user = db.Queryable<USERSBASE>().Where(u => u.uCode == req.uCode).FirstOrDefault();
+                        if (user != null)
+                        {
+                            avatar = user.avatar;
+                        }
+                        foreach (var item in resList)
+                        {
+                            newAnnexBase annex = new newAnnexBase();
+                            ReqToDBGenericClass<ANNEXBASE, newAnnexBase>.ReqToDBInstance(item, annex);
+                            annex.fileTagList = JsonConvert.DeserializeObject<List<string>>(item.fileTag);
+                            annex.avatar = avatar;
+                            newRes.Add(annex);
+                        }
+                        
+                        
+                        retValue.SuccessDefalut(newRes, pageNum);
                     }
 
                 }

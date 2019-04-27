@@ -84,6 +84,8 @@ namespace ZC.Platform.API.Model
             /// 当前用户是否收藏当前信息
             /// </summary>
             public bool isCollected { get; set; }
+
+            public string avatar { get; set; }
         }
 
         public class ResSearch : ResponseModelBase<List<SearchResult>>
@@ -95,7 +97,7 @@ namespace ZC.Platform.API.Model
         #region AddDoc
         public class ReqAddDoc : ANNEXBASE
         {
-
+            public List<string> fileTagList { get; set; }
         }
         public class ResAddDoc : ResponseModelBase
         {
@@ -161,7 +163,7 @@ namespace ZC.Platform.API.Model
         #region UpdateDoc
         public class ReqUpdateDoc : ANNEXBASE
         {
-
+            public List<string> fileTagList { get; set; }
         }
         public class ResUpdateDoc : ResponseModelBase
         {

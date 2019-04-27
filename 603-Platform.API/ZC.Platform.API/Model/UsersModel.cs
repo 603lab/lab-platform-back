@@ -18,19 +18,26 @@ namespace ZC.Platform.API.Model
         /// </summary>
         public class ReqUsersBase : USERSBASE
         {
-
+            public List<string> techList { get; set; }
+           
         }
         public class ResUsersBase:ResponseModelBase
         {
 
         }
-
-        public class ResLogin : ResponseModelBase<USERSBASE>
+        public class My:USERSBASE
+        {
+            public List<string> techList { get; set; }
+        }
+        public class ResLogin : ResponseModelBase<My>
         {
 
         }
 
+        public class ResPhoneLogin : ResponseModelBase<USERSBASE>
+        {
 
+        }
 
         #region GetUser
 
@@ -146,7 +153,13 @@ namespace ZC.Platform.API.Model
             public int pageSize { get; set; }
         }
 
-        public class ResGetMyDocs : ResponseModelBase<List<ANNEXBASE>>
+        public class newAnnexBase : ANNEXBASE
+        {
+            public List<string> fileTagList { get; set; }
+
+            public string avatar { get; set; }
+        }
+        public class ResGetMyDocs : ResponseModelBase<List<newAnnexBase>>
         {
 
         }

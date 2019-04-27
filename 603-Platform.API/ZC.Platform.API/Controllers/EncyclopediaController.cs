@@ -22,7 +22,7 @@ namespace ZC.Platform.API.Controllers
     public class EncyclopediaController : Controller
     {
         /// <summary>
-        ///获取百科基本菜单(这里需要后端把报文排序好传给前端所以还是直接String类型吧)
+        ///获取百科基本菜单
         /// </summary>
         /// <param name="user"></param>
         /// <returns></returns>
@@ -147,6 +147,10 @@ namespace ZC.Platform.API.Controllers
                           .Where<T_USERS>((it, it2) => it2.followed_num <= req.followMin);
                         }
                     }
+
+                    //缓存所有用户
+                    var userList = db.Queryable<T_USERS>().ToList();
+
                     //在取分页总数的时候节省性能
 
                     var totalList = annexList.ToList();
@@ -163,7 +167,11 @@ namespace ZC.Platform.API.Controllers
 
                         model.isCollected = db.Queryable<T_COLLECTION>()
                            .Any(s => s.item_id == s.ID && s.create_user_code == req.createUserCode);
-
+                        var user = userList.Where(u => u.u_code == model.createUserCode).FirstOrDefault();
+                        if (user != null)
+                        {
+                            model.avatar = user.avatar;
+                        }
                         return model;
                     }).ToList();
 
@@ -238,8 +246,11 @@ namespace ZC.Platform.API.Controllers
                         try
                         {
                             db.BeginTran();//开启事务
-
-                            var id = db.Insert(req);
+                            req.fileTag = JsonConvert.SerializeObject(req.fileTagList);
+                            ANNEXBASE annex = new ANNEXBASE();
+                            ReqToDBGenericClass<ReqAddDoc, ANNEXBASE>.ReqToDBInstance(req, annex);
+                            
+                            var id = db.Insert(annex);
 
                             //将报文上传 t_edit_detail 表
                             string json = JsonConvert.SerializeObject(req);
@@ -680,7 +691,8 @@ namespace ZC.Platform.API.Controllers
                             db.Update<ANNEXBASE>(
                                 new
                                 {
-                                    fileTag = req.fileTag,
+                                    fileName = req.fileName,
+                                    fileTag = JsonConvert.SerializeObject(req.fileTagList),
                                     content = req.content
                                 },
                                 it => it.ID == req.ID
@@ -1298,6 +1310,7 @@ namespace ZC.Platform.API.Controllers
             }
             return docMenuList;
         }
+
         #endregion
 
     }
