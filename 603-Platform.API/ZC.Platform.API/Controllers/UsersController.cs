@@ -544,7 +544,7 @@ namespace ZC.Platform.API.Controllers
                         var resList = list.OrderBy(s => s.createTime, OrderByType.desc).ToPageList(req.currentPage,req.pageSize, ref pageNum);
                         List<newAnnexBase> newRes = new List<newAnnexBase>();
                         string avatar = string.Empty;
-                        var user = db.Queryable<USERSBASE>().Where(u => u.uCode == req.uCode).FirstOrDefault();
+                        var user = db.Queryable<T_USERS>().Where(u => u.u_code == req.uCode).FirstOrDefault();
                         if (user != null)
                         {
                             avatar = user.avatar;
