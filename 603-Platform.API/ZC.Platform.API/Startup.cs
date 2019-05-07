@@ -51,13 +51,14 @@ namespace ZC.Platform.API
             {
                 app.UseDeveloperExceptionPage();
             }
-
+            
             app.UseCors("AllowAll");
             app.UseCors(builder => builder
                      .AllowAnyOrigin()
                      .AllowAnyMethod()
                      .AllowAnyHeader());
             app.UseMvc();
+            app.UseStaticFiles();
         }
     }
 }

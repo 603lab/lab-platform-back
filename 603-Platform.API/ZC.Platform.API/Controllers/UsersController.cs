@@ -81,10 +81,18 @@ namespace ZC.Platform.API.Controllers
                         .Where(s => s.username == user.username)
                         .Where(s => s.password == user.password)
                         .FirstOrDefault();
-                    My my = new My();
-                    ReqToDBGenericClass<USERSBASE, My>.ReqToDBInstance(userInfo, my);
-                    my.techList = JsonConvert.DeserializeObject<List<string>>(my.techDirection);
-                    retValue.SuccessDefalut(my, 1, "账号或者密码错误");
+                    if (userInfo == null)
+                    {
+                        retValue.FailDefalut("账号或者密码错误");
+                    }
+                    else
+                    {
+                        My my = new My();
+                        ReqToDBGenericClass<USERSBASE, My>.ReqToDBInstance(userInfo, my);
+                        my.techList = JsonConvert.DeserializeObject<List<string>>(my.techDirection);
+                        retValue.SuccessDefalut(my, 1, "账号或者密码错误");
+
+                    }
 
                     //记录登录日志
                     if (userInfo != null)
@@ -207,6 +215,128 @@ namespace ZC.Platform.API.Controllers
         }
 
         /// <summary>
+        /// 修改昵称
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        [HttpPost("UpdateNickName")]
+        public ResUsersBase UpdateNickName([FromBody]ReqUsersBase user)
+        {
+            ResUsersBase retValue = new ResUsersBase();
+            using (var db = DbContext.GetInstance("T_USERS"))
+            {
+                try
+                {
+                    //设置禁止更新列
+                    db.AddDisableUpdateColumns("username", "password", "is_admin", "follow_num", "followed_num", "ID", "scores", "u_code", "create_time");
+
+                    bool isIDExist = db.Queryable<USERSBASE>()
+                        .Any(s => s.uCode == user.uCode);
+                    if (isIDExist)
+                    {
+                        #region 验证必填信息及其格式
+
+                        bool status = true;
+
+                        //登录后将获取的信息存在本地 然后用于请求
+                        if (string.IsNullOrEmpty(user.nickName))
+                        {
+                            retValue.FailDefalut("请填写正确的昵称");
+                            status = false;
+                        }
+                        #endregion
+                        if (status)
+                        {
+
+                            var newUser = db.Queryable<USERSBASE>().Where(s => s.uCode == user.uCode).FirstOrDefault();
+                            if (newUser != null)
+                            {
+                                user.ID = newUser.ID;
+                                ReqToDBGenericClass<ReqUsersBase, USERSBASE>.ReqToDBInstance(user, newUser);
+                                db.Update(newUser);
+                                retValue.SuccessDefalut("更新成功！", 1);
+                                LogWirter.Record(LogType.Login, OpType.Update, "信息", "更改昵称，编辑", Convert.ToInt32(user.uCode), user.createUserCode, user.createUserName);
+                            }
+
+                        }
+
+                    }
+                    else
+                    {
+                        retValue.FailDefalut("不存在该用户ID");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    retValue.FailDefalut(ex);
+                }
+
+            }
+            return retValue;
+        }
+
+        /// <summary>
+        /// 修改头像
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        [HttpPost("UpdateAvatar")]
+        public ResUsersBase UpdateAvatar([FromBody]ReqUsersBase user)
+        {
+            ResUsersBase retValue = new ResUsersBase();
+            using (var db = DbContext.GetInstance("T_USERS"))
+            {
+                try
+                {
+                    //设置禁止更新列
+                    db.AddDisableUpdateColumns("username", "password", "is_admin", "follow_num", "followed_num", "ID", "scores", "u_code", "create_time");
+
+                    bool isIDExist = db.Queryable<USERSBASE>()
+                        .Any(s => s.uCode == user.uCode);
+                    if (isIDExist)
+                    {
+                        #region 验证必填信息及其格式
+
+                        bool status = true;
+
+                        //登录后将获取的信息存在本地 然后用于请求
+                        if (string.IsNullOrEmpty(user.avatar))
+                        {
+                            retValue.FailDefalut("请填写正确的头像地址");
+                            status = false;
+                        }
+                        #endregion
+                        if (status)
+                        {
+
+                            var newUser = db.Queryable<USERSBASE>().Where(s => s.uCode == user.uCode).FirstOrDefault();
+                            if (newUser != null)
+                            {
+                                user.ID = newUser.ID;
+                                ReqToDBGenericClass<ReqUsersBase, USERSBASE>.ReqToDBInstance(user, newUser);
+                                db.Update(newUser);
+                                retValue.SuccessDefalut("更新成功！", 1);
+                                LogWirter.Record(LogType.Login, OpType.Update, "信息", "更改昵称，编辑", Convert.ToInt32(user.uCode), user.createUserCode, user.createUserName);
+                            }
+
+                        }
+
+                    }
+                    else
+                    {
+                        retValue.FailDefalut("不存在该用户ID");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    retValue.FailDefalut(ex);
+                }
+
+            }
+            return retValue;
+        }
+
+        /// <summary>
         /// 根据手机号修改密码
         /// </summary>
         /// <param name="user"></param>
@@ -277,7 +407,7 @@ namespace ZC.Platform.API.Controllers
                         }
                         else
                         {
-                            retValue.FailDefalut("不存在该用户手机号");
+                            retValue.FailDefalut("不存在该学号");
                         }
                     }
                     catch (Exception ex)
@@ -555,6 +685,8 @@ namespace ZC.Platform.API.Controllers
                             ReqToDBGenericClass<ANNEXBASE, newAnnexBase>.ReqToDBInstance(item, annex);
                             annex.fileTagList = JsonConvert.DeserializeObject<List<string>>(item.fileTag);
                             annex.avatar = avatar;
+                            annex.isLike = db.Queryable<T_LIKE>()
+                        .Any(s => s.item_id == item.ID && s.create_user_code == req.uCode && s.type == LikeType.Doc.ToString());
                             newRes.Add(annex);
                         }
                         

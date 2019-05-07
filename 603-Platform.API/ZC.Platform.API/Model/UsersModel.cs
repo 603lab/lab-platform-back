@@ -158,6 +158,10 @@ namespace ZC.Platform.API.Model
             public List<string> fileTagList { get; set; }
 
             public string avatar { get; set; }
+            /// <summary>
+            /// 当前用户是否已经点赞该信息
+            /// </summary>
+            public bool isLike { get; set; }
         }
         public class ResGetMyDocs : ResponseModelBase<List<newAnnexBase>>
         {
