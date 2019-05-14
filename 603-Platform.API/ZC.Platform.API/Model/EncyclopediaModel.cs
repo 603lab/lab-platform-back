@@ -105,6 +105,17 @@ namespace ZC.Platform.API.Model
         }
         #endregion
 
+        #region AddMenu
+        public class ReqAddMenu : DOCCATLOGBASE
+        {
+            
+        }
+        public class ResAddMenu : ResponseModelBase
+        {
+
+        }
+        #endregion
+
         #region Like
         public class ReqLike : LIKEBASE
         {
@@ -135,6 +146,7 @@ namespace ZC.Platform.API.Model
         {
             public bool isLike { get; set; }
             public bool isCollected { get; set; }
+            public List<string> tagList { get; set; }
         }
 
         public class ReqGetDocConetnt : ANNEXBASE
@@ -143,7 +155,7 @@ namespace ZC.Platform.API.Model
         }
         public class ResGetDocConetnt : ResponseModelBase<DocContent>
         {
-
+            
         }
 
         #endregion
@@ -212,6 +224,7 @@ namespace ZC.Platform.API.Model
         public class Comments: DOCCOMMETSBASE
         {
             public bool isLike { get; set; }
+            public string avatar { get; set; }
         }
 
         public class ReqGetComments : DOCCOMMETSBASE

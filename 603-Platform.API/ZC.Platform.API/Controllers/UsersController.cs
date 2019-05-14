@@ -533,7 +533,7 @@ namespace ZC.Platform.API.Controllers
         /// <param name="req"></param>
         /// <returns></returns>
         [HttpGet("GetUsersInfo")]
-        public ResGetUsersInfo GetComments([FromHeader]ReqGetUsersInfo req)
+        public ResGetUsersInfo GetUsersInfo([FromHeader]ReqGetUsersInfo req)
         {
             ResGetUsersInfo retValue = new ResGetUsersInfo();
             using (var db = DbContext.GetInstance("T_USERS"))

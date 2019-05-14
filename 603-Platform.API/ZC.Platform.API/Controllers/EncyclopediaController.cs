@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using MyCommon;
 using MySqlSugar;
 using MySugar;
 using Newtonsoft.Json;
@@ -272,6 +273,82 @@ namespace ZC.Platform.API.Controllers
                             db.CommitTran();//提交事务
                             retValue.SuccessDefalut("创建成功", 1);
                             LogWirter.Record(LogType.Doc, OpType.Add, req.fileName+"]", "创建文章 [", Convert.ToInt32(req.createUserCode), req.createUserCode, req.createUserName);
+                        }
+                        catch (Exception ex)
+                        {
+                            db.RollbackTran();//回滚事务
+                            retValue.FailDefalut($"意外错误,错误信息：{ex.Message}");
+                        }
+
+
+                    }
+                }
+                catch (Exception ex)
+                {
+                    retValue.FailDefalut(ex);
+                }
+            }
+
+            return retValue;
+        }
+
+        /// <summary>
+        /// 创建文章
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        [HttpPost("AddMenu")]
+        public ResAddMenu AddMenu([FromBody] ReqAddMenu req)
+        {
+            ResAddMenu retValue = new ResAddMenu();
+
+            using (var db = DbContext.GetInstance("T_DOC_CATLOG"))
+            {
+
+                #region 判断必填项
+                bool status = true;
+                if (req.parentCode == 0)
+                {
+                    retValue.FailDefalut("请填写文件父类ID");
+                    status = false;
+                }
+                else if (string.IsNullOrEmpty(req.fileName))
+                {
+                    retValue.FailDefalut("请填写文件名称");
+                    status = false;
+                }
+                else if (string.IsNullOrEmpty(req.createUserCode))
+                {
+                    retValue.FailDefalut("必填参数创建人编号");
+                    status = false;
+                }
+                else if (string.IsNullOrEmpty(req.createUserName))
+                {
+                    retValue.FailDefalut("必填参数创建人姓名");
+                    status = false;
+                }
+
+                #endregion
+
+                try
+                {
+                    if (status)
+                    {
+                        //设置创建时间
+                        req.createTime = DateTime.Now;
+                        //事务
+                        try
+                        {
+                            db.BeginTran();//开启事务
+                            req.isMenu = (int)EnumCommon.isMenu.Yes;
+                            req.lastEditTime = DateTime.Now;
+                            DOCCATLOGBASE menu = new DOCCATLOGBASE();
+                            ReqToDBGenericClass<ReqAddMenu, DOCCATLOGBASE>.ReqToDBInstance(req, menu);
+                            var menuId = db.Insert(menu);
+
+                            db.CommitTran();//提交事务
+                            retValue.SuccessDefalut("创建成功", 1);
+                            LogWirter.Record(LogType.Menu, OpType.Add, req.fileName + "]", "创建目录 [", Convert.ToInt32(req.createUserCode), req.createUserCode, req.createUserName);
                         }
                         catch (Exception ex)
                         {
@@ -570,7 +647,7 @@ namespace ZC.Platform.API.Controllers
 
                     model.isCollected = db.Queryable<T_COLLECTION>()
                        .Any(s => s.item_id == req.ID && s.create_user_code == req.createUserCode);
-
+                    model.tagList = JsonConvert.DeserializeObject<List<string>>(model.fileTag);
                     retValue.SuccessDefalut(model, 1, "不存在该Doc");
                 }
                 catch (Exception ex)
@@ -995,12 +1072,20 @@ namespace ZC.Platform.API.Controllers
                 {
                     if (status)
                     {
+                        var userList = db.Queryable<T_USERS>().ToList();
                         var resultList = db.Queryable<DOCCOMMETSBASE>()
                        .Where(d => d.docId == req.ID)
                        .JoinTable<T_LIKE>((d, l) => d.ID == l.item_id && l.type == LikeType.Comment.ToString() &&l.create_user_code==req.createUserCode)
                        .Select<Comments>("d.*,l.item_id as isLike")
                        .ToList();
-
+                        foreach (var item in resultList)
+                        {
+                            var user = userList.Where(s => s.u_code == item.createUserCode).FirstOrDefault();
+                            if (user != null)
+                            {
+                                item.avatar = user.avatar;
+                            } 
+                        }
                         retValue.SuccessDefalut(resultList, resultList.Count);
                     }
 

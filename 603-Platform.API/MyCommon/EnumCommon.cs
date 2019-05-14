@@ -16,6 +16,19 @@ namespace MyCommon
             Female = 0
         }
 
+        public enum isMenu : int
+        {
+            /// <summary>
+            /// 是菜单
+            /// </summary>
+            Yes = 1,
+            /// <summary>
+            /// 非菜单
+            /// </summary>
+            No = 0
+        }
+
+
         public enum isTop : int
         {
             /// <summary>
@@ -155,7 +168,11 @@ namespace MyCommon
             /// <summary>
             /// 个人
             /// </summary>
-            Personal
+            Personal,
+            /// <summary>
+            /// 创建菜单
+            /// </summary>
+            Menu
         }
 
         /// <summary>

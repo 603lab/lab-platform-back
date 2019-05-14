@@ -167,16 +167,25 @@ namespace ZC.Platform.API.Controllers
             {
                 try
                 {
-                    //如果有信息被设置为置顶并且根据创建时间降序
-                    var TaskList = db.Queryable<TASKBASE>()
-                        .Where(s => s.isDone == task.isDone)
-                        .OrderBy(s => s.lastEditTime, OrderByType.desc)
-                        .ToList();
-                    //分页 0是第一页
-                    var reList = TaskList.Skip((task.currentPage-1) * task.pageSize)
-                         .Take(task.pageSize).ToList();
-                  
-                    retValue.SuccessDefalut(reList, TaskList.Count);
+                    if (string.IsNullOrEmpty(task.createUserCode))
+                    {
+                        retValue.FailDefalut("必填参数【用户编号】");
+                    }
+                    else
+                    {
+                        //如果有信息被设置为置顶并且根据创建时间降序
+                        var TaskList = db.Queryable<TASKBASE>()
+                            .Where(s => s.isDone == task.isDone)
+                            .Where(s => s.createUserCode == task.createUserCode)
+                            .OrderBy(s => s.lastEditTime, OrderByType.desc)
+                            .ToList();
+                        //分页 0是第一页
+                        var reList = TaskList.Skip((task.currentPage - 1) * task.pageSize)
+                             .Take(task.pageSize).ToList();
+
+                        retValue.SuccessDefalut(reList, TaskList.Count);
+                    }
+                   
 
                 }
                 catch (Exception ex)
