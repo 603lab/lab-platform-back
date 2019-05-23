@@ -91,8 +91,10 @@ namespace ZC.Platform.API.Model
             /// 文章点赞数
             /// </summary>
             public int likeNum { get; set; }
-
-
+            /// <summary>
+            /// 技术方向
+            /// </summary>
+            public List<string> techList { get; set; }
             /// <summary>
             /// 是否为该团队管理员
             /// </summary>

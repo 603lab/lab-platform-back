@@ -569,7 +569,7 @@ namespace ZC.Platform.API.Controllers
                             userInfo.teamName = team.team_name;
                             userInfo.isTeamAdmin = team.is_admin;
                         }
-
+                        userInfo.techList = JsonConvert.DeserializeObject<List<string>>(userInfo.techDirection);
 
                         //获取文章点赞数 
                         //获取文章点赞总数

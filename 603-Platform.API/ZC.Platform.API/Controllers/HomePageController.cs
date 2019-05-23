@@ -10,6 +10,8 @@ using static MyCommon.EnumCommon;
 using static MyCommon.UpdateCommon;
 using ZC.Platform.API.BaseModel;
 using Microsoft.AspNetCore.Cors;
+using ZC.Platform.Model;
+using Newtonsoft.Json;
 
 namespace ZC.Platform.API.Controllers
 {
@@ -314,16 +316,36 @@ namespace ZC.Platform.API.Controllers
             {
                 try
                 {
-                    //如果有信息被设置为置顶并且根据创建时间降序
-                    var userList = db.Queryable<USERSBASE>()
-                        .Where(s => s.techDirection.Contains(req.leaderType))
-                        .OrderBy(s => s.followedNum, OrderByType.desc)
-                        .ToList();
-                    //分页 0是第一页
-                    var reList = userList.Skip((req.currentPage - 1) * req.pageSize)
-                         .Take(req.pageSize).ToList();
+                    if (string.IsNullOrEmpty(req.uCode))
+                    {
+                        retValue.FailDefalut("必填参数[用户编号]");
+                    }
+                    else
+                    {
+                        //如果有信息被设置为置顶并且根据创建时间降序
+                        var userList = db.Queryable<USERSBASE>()
+                            .Where(s => s.techDirection.Contains(req.leaderType))
+                            .OrderBy(s => s.followedNum, OrderByType.desc)
+                            .ToList();
+                        //分页 0是第一页
+                        List<leader> leaderList = new List<leader>();
+                        foreach (var item in userList)
+                        {
+                            leader user = new leader();
+                            ReqToDBGenericClass<USERSBASE,leader >.ReqToDBInstance( item, user);
+                            user.isFollowed = db.Queryable<T_FOLLOW_USERS>().Any(s => s.create_user_code == req.uCode && s.follow_user_code == item.uCode);
+                            var list= db.Queryable<T_USER_TAGS>().Where(s => s.create_user_code == item.uCode).Select(s => s.label).ToList();
+                            var techList =JsonConvert.DeserializeObject<List<string>>(item.techDirection);
+                            user.tag = string.Join(";", list);
+                            user.techDirection = string.Join(";", techList);
+                            leaderList.Add(user);
+                        }
 
-                    retValue.SuccessDefalut(reList, userList.Count);
+                        var reList = leaderList.Skip((req.currentPage - 1) * req.pageSize)
+                             .Take(req.pageSize).ToList();
+
+                        retValue.SuccessDefalut(reList, userList.Count);
+                    }
 
                 }
                 catch (Exception ex)

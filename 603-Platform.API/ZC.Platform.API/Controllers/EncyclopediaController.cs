@@ -174,7 +174,7 @@ namespace ZC.Platform.API.Controllers
                             model.avatar = user.avatar;
                         }
                         return model;
-                    }).ToList();
+                    }).OrderByDescending(s=>s.createTime).ToList();
 
                     retValue.SuccessDefalut(list, totalList.Count);
 

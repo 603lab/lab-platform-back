@@ -47,11 +47,16 @@ namespace ZC.Platform.API.Model
         public class ReqGetLeaders
         {
             public string leaderType { get; set; }
+            public string uCode { get; set; }
             public int currentPage { get; set; }
             public int pageSize { get; set; }
         }
-
-        public class ResGetLeaders : ResponseModelBase<List<USERSBASE>>
+        public class leader : USERSBASE
+        {
+            public string tag { get; set; }
+            public bool isFollowed { get; set; }
+        }
+        public class ResGetLeaders : ResponseModelBase<List<leader>>
         {
 
         }
