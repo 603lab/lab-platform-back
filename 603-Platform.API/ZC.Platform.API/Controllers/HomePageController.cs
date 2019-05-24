@@ -12,6 +12,7 @@ using ZC.Platform.API.BaseModel;
 using Microsoft.AspNetCore.Cors;
 using ZC.Platform.Model;
 using Newtonsoft.Json;
+using MyCommon;
 
 namespace ZC.Platform.API.Controllers
 {
@@ -370,8 +371,24 @@ namespace ZC.Platform.API.Controllers
                         .Where(s => s.fileTag.Contains(req.articleType))
                         .OrderBy(s => s.likeNum, OrderByType.desc)
                         .ToList();
+                    List<goods> goods = new List<goods>();
+                    var userList = db.Queryable<T_USERS>().ToList();
+                    foreach (var item in annexList)
+                    {
+                        goods good = new goods();
+                        ReqToDBGenericClass<ANNEXBASE, goods>.ReqToDBInstance(item, good);
+
+                        var user = userList.Where(s => s.u_code == item.createUserCode).FirstOrDefault();
+                        if (user != null)
+                        {
+                            good.avatar = user.avatar;
+                        }
+                        goods.Add(good);
+                    }
+                 
+
                     //分页 0是第一页
-                    var reList = annexList.Skip((req.currentPage - 1) * req.pageSize)
+                    var reList = goods.Skip((req.currentPage - 1) * req.pageSize)
                          .Take(req.pageSize).ToList();
 
                     retValue.SuccessDefalut(reList, annexList.Count);

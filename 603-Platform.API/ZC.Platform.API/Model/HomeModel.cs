@@ -71,8 +71,12 @@ namespace ZC.Platform.API.Model
             public int currentPage { get; set; }
             public int pageSize { get; set; }
         }
+        public class goods : ANNEXBASE
+        {
+            public string avatar { get; set; }
+        }
 
-        public class ResGetGoods : ResponseModelBase<List<ANNEXBASE>>
+        public class ResGetGoods : ResponseModelBase<List<goods>>
         {
 
         }

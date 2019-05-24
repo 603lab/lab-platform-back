@@ -164,7 +164,7 @@ namespace ZC.Platform.API.Controllers
                         ReqToDBGenericClass<ANNEXBASE, SearchResult>.ReqToDBInstance(it, model);
 
                         model.isLike = db.Queryable<T_LIKE>()
-                        .Any(s => s.item_id == s.ID && s.create_user_code == req.createUserCode && s.type == LikeType.Doc.ToString());
+                        .Any(s => s.item_id == it.ID && s.create_user_code == req.createUserCode && s.type == LikeType.Doc.ToString());
 
                         model.isCollected = db.Queryable<T_COLLECTION>()
                            .Any(s => s.item_id == s.ID && s.create_user_code == req.createUserCode);
@@ -1220,11 +1220,8 @@ namespace ZC.Platform.API.Controllers
                             }
                             else
                             {
-                                FOLLOWUSERSBASE follow = new FOLLOWUSERSBASE();
-
-                                ReqToDBGenericClass<ReqFollow, FOLLOWUSERSBASE>.ReqToDBInstance(req, follow);
                                 //事务 同步文档点赞数
-
+                                var follow = db.Queryable<FOLLOWUSERSBASE>().Where(s => s.createUserCode == req.createUserCode && s.followUserCode == req.followUserCode).FirstOrDefault();
                                 //获取被关注用户数量
                                 var followUser = db.Queryable<T_USERS>().Where(s => s.u_code == req.followUserCode).First();
                                 //当前用户关注数
@@ -1236,15 +1233,7 @@ namespace ZC.Platform.API.Controllers
                                 try
                                 {
                                     db.BeginTran();//开启事务
-                                    db.Insert(follow);
-                                    //减少关注人的关注数量
-                                    db.Update<T_USERS>(
-                                        new
-                                        {
-                                            followed_num = followedNum
-                                        },
-                                        it => it.u_code == req.followUserCode
-                                        );
+                                    db.Delete(follow);
                                     //减少本用户的关注数量
                                     db.Update<T_USERS>(
                                        new
